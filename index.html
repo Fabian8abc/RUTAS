@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RutaMaster Pro - Optimización Logística</title>
+    <title>RutaMaster Pro - Mapa y Logística</title>
     <!-- Tailwind CSS para el diseño -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Iconos Lucide -->
@@ -14,22 +14,18 @@
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .optimizing-glow { animation: pulse-indigo 2s infinite; }
-        @keyframes pulse-indigo {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
-            50% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
-        }
+        #map { height: 400px; width: 100%; border-radius: 1.5rem; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 
-    <div class="max-w-6xl mx-auto p-4 md:p-8">
+    <div class="max-w-7xl mx-auto p-4 md:p-8">
         
         <!-- Header -->
         <header class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
             <div class="flex items-center gap-3">
                 <div class="bg-indigo-600 p-3 rounded-2xl shadow-xl shadow-indigo-100">
-                    <i data-lucide="navigation" class="text-white w-6 h-6"></i>
+                    <i data-lucide="map" class="text-white w-6 h-6"></i>
                 </div>
                 <div>
                     <h1 class="text-xl font-black text-slate-900 leading-none">RutaMaster Pro</h1>
@@ -55,39 +51,23 @@
         </header>
 
         <!-- Panel de Ayuda -->
-        <div id="help-panel" class="hidden mb-8 bg-white border-2 border-indigo-100 p-6 rounded-[2rem] shadow-sm animate-in slide-in-from-top-4 duration-500">
-            <div class="flex justify-between items-start mb-6">
-                <div class="flex items-center gap-3">
-                    <div class="bg-indigo-100 p-2 rounded-lg text-indigo-600">
-                        <i data-lucide="zap" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-slate-900 font-bold text-sm">Nueva Función: Optimización</h3>
-                        <p class="text-xs text-slate-500">Ordena tus paradas de la forma más eficiente.</p>
-                    </div>
-                </div>
-                <button onclick="toggleHelp()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+        <div id="help-panel" class="hidden mb-8 bg-white border-2 border-indigo-100 p-6 rounded-[2rem] shadow-sm">
+            <div class="flex justify-between items-start mb-4">
+                <h3 class="text-slate-900 font-bold text-sm">Configuración de Imagen y Mapa</h3>
+                <button onclick="toggleHelp()" class="text-slate-400">✕</button>
             </div>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <p class="text-[10px] font-black text-indigo-600 mb-2 uppercase tracking-widest">¿Cómo funciona?</p>
-                    <p class="text-xs text-slate-600 leading-relaxed">
-                        Si activas la optimización, el sistema analiza las distancias entre todos los puntos. El primer punto que escribas se mantendrá como el <strong>Punto de Inicio</strong>, y los demás se reordenarán para que recorras la menor distancia posible.
-                    </p>
-                </div>
-                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <p class="text-[10px] font-black text-indigo-600 mb-2 uppercase tracking-widest text-wrap">Permisos de Dominio</p>
-                    <div class="flex items-center gap-2">
-                        <div id="domain-value" class="flex-1 bg-white p-2 rounded-lg border border-slate-200 font-mono text-[9px] font-bold text-indigo-600 truncate italic">detectando...</div>
-                        <button onclick="copyDomain()" class="bg-slate-900 text-white px-3 py-2 rounded-lg text-[10px] font-bold hover:bg-slate-800 shrink-0 italic">Copiar</button>
-                    </div>
-                </div>
+            <p class="text-xs text-slate-600 leading-relaxed mb-4">
+                Para visualizar el mapa y generar la imagen, tu API Key debe tener habilitadas: 
+                <strong>Maps JavaScript API</strong>, <strong>Directions API</strong> y <strong>Static Maps API</strong>.
+            </p>
+            <div class="flex items-center gap-2">
+                <div id="domain-value" class="flex-1 bg-slate-50 p-2 rounded-lg border border-slate-200 font-mono text-[10px] text-indigo-600 truncate italic">detectando...</div>
+                <button onclick="copyDomain()" class="bg-slate-900 text-white px-3 py-2 rounded-lg text-[10px] font-bold">Copiar Dominio</button>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <!-- Entrada de Datos -->
+            <!-- Columna Izquierda: Input -->
             <div class="lg:col-span-4 space-y-4">
                 <div class="bg-white rounded-[2rem] shadow-sm border border-slate-200 p-6 md:p-8">
                     <h2 class="font-bold text-slate-800 mb-4 flex items-center gap-3">
@@ -97,15 +77,14 @@
 
                     <textarea 
                         id="locations-input"
-                        placeholder="Ejemplo:&#10;Mi Oficina (Inicio)&#10;Cliente A&#10;Cliente B&#10;Bodega..."
-                        class="w-full h-64 p-5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 outline-none text-sm resize-none font-mono transition-all placeholder:text-slate-300"
+                        placeholder="Ejemplo:&#10;Punto de Inicio&#10;Destino 1&#10;Destino 2"
+                        class="w-full h-64 p-5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 outline-none text-sm resize-none font-mono transition-all"
                     ></textarea>
 
-                    <!-- Opción de Optimización -->
                     <div class="mt-4 p-4 bg-indigo-50 rounded-2xl border border-indigo-100 flex items-center gap-3">
-                        <input type="checkbox" id="optimize-toggle" class="w-5 h-5 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                        <input type="checkbox" id="optimize-toggle" class="w-5 h-5 rounded border-indigo-300 text-indigo-600 cursor-pointer" checked>
                         <label for="optimize-toggle" class="text-xs font-bold text-indigo-900 cursor-pointer select-none">
-                            Optimizar orden automáticamente (Sugerencia inteligente)
+                            Optimizar orden automáticamente
                         </label>
                     </div>
                     
@@ -115,7 +94,7 @@
                         class="w-full mt-4 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all bg-indigo-600 text-white hover:bg-indigo-700 shadow-xl shadow-indigo-100 disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none"
                     >
                         <i data-lucide="play" class="w-4 h-4 fill-current"></i>
-                        Calcular Ruta
+                        Calcular y Dibujar
                     </button>
                     <div id="progress-container" class="hidden mt-4 bg-slate-100 h-2 rounded-full overflow-hidden">
                         <div id="progress-bar" class="bg-indigo-600 h-full transition-all duration-300" style="width: 0%"></div>
@@ -124,20 +103,31 @@
 
                 <div id="error-box" class="hidden bg-red-50 border border-red-200 p-5 rounded-3xl flex items-start gap-3">
                     <i data-lucide="alert-circle" class="w-5 h-5 text-red-500 shrink-0 mt-0.5"></i>
-                    <div class="space-y-1">
-                        <p class="text-[11px] text-red-800 font-black uppercase tracking-tighter">Aviso del Sistema</p>
-                        <p id="error-text" class="text-xs text-red-700 leading-relaxed font-medium"></p>
-                    </div>
+                    <p id="error-text" class="text-xs text-red-700 leading-relaxed font-medium"></p>
                 </div>
             </div>
 
-            <!-- Tabla de Resultados -->
-            <div class="lg:col-span-8">
-                <div class="bg-white rounded-[2rem] shadow-sm border border-slate-200 min-h-[600px] flex flex-col overflow-hidden">
-                    <div class="p-6 md:p-8 border-b border-slate-100 flex items-center justify-between bg-white/50 backdrop-blur-md sticky top-0 z-10">
+            <!-- Columna Derecha: Mapa y Reporte -->
+            <div class="lg:col-span-8 space-y-8">
+                <!-- Visualización del Mapa -->
+                <div id="map-container" class="hidden bg-white rounded-[2rem] shadow-sm border border-slate-200 p-4">
+                    <div class="flex items-center justify-between mb-4 px-2">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                            <i data-lucide="navigation-2" class="w-4 h-4 text-indigo-500"></i>
+                            Vista Previa de Ruta
+                        </h3>
+                        <button id="btn-static-map" onclick="openStaticMap()" class="text-[10px] font-bold text-indigo-600 flex items-center gap-1 hover:underline">
+                            <i data-lucide="image" class="w-3.5 h-3.5"></i> Obtener Imagen de Mapa
+                        </button>
+                    </div>
+                    <div id="map"></div>
+                </div>
+
+                <!-- Tabla de Reporte -->
+                <div class="bg-white rounded-[2rem] shadow-sm border border-slate-200 min-h-[400px] flex flex-col overflow-hidden">
+                    <div class="p-6 md:p-8 border-b border-slate-100 flex items-center justify-between bg-white/50 backdrop-blur-md">
                         <div>
                             <h2 class="font-bold text-xl text-slate-900">Reporte Logístico</h2>
-                            <p id="optim-badge" class="hidden text-[10px] font-black text-indigo-600 uppercase tracking-widest mt-1">✓ Orden Optimizado por Distancia</p>
                         </div>
                         <button 
                             id="btn-export"
@@ -154,7 +144,7 @@
                             <thead>
                                 <tr class="bg-slate-50/50 text-slate-400 text-[9px] uppercase tracking-[0.2em] font-black border-b border-slate-100">
                                     <th class="px-8 py-4">Orden</th>
-                                    <th class="px-8 py-4">Tramo (Desde/Hacia)</th>
+                                    <th class="px-8 py-4">Tramo</th>
                                     <th class="px-8 py-4 text-center">Distancia</th>
                                     <th class="px-8 py-4 text-center">Tiempo</th>
                                 </tr>
@@ -162,23 +152,16 @@
                             <tbody id="results-body" class="divide-y divide-slate-100"></tbody>
                             <tfoot class="bg-slate-900 text-white sticky bottom-0">
                                 <tr>
-                                    <td colSpan="2" class="px-8 py-6 text-right font-bold text-[10px] uppercase tracking-[0.3em] text-slate-500">Resumen Total:</td>
-                                    <td class="px-8 py-6 text-center border-l border-white/5">
-                                        <span id="total-km" class="text-xl font-black text-emerald-400 block tracking-tighter">0 km</span>
-                                    </td>
-                                    <td class="px-8 py-6 text-center border-l border-white/5">
-                                        <span id="total-time" class="text-xl font-black text-white block tracking-tighter">0 min</span>
-                                    </td>
+                                    <td colSpan="2" class="px-8 py-6 text-right font-bold text-[10px] uppercase tracking-[0.3em] text-slate-500">Totales:</td>
+                                    <td class="px-8 py-6 text-center border-l border-white/5 font-black text-emerald-400" id="total-km">0 km</td>
+                                    <td class="px-8 py-6 text-center border-l border-white/5 font-black text-white" id="total-time">0 min</td>
                                 </tr>
                             </tfoot>
                         </table>
 
-                        <div id="empty-state" class="flex flex-col items-center justify-center h-full text-slate-400 py-48 space-y-6">
-                            <i data-lucide="route" class="w-12 h-12 text-slate-200"></i>
-                            <div class="text-center">
-                                <p class="text-sm font-bold text-slate-600">No hay datos procesados</p>
-                                <p class="text-xs text-slate-400 mt-1">Ingresa las paradas y activa la optimización si deseas el mejor orden.</p>
-                            </div>
+                        <div id="empty-state" class="flex flex-col items-center justify-center h-64 text-slate-400 py-32">
+                            <i data-lucide="route" class="w-12 h-12 opacity-20 mb-4"></i>
+                            <p class="text-xs font-medium">Ingresa domicilios y calcula para ver el reporte</p>
                         </div>
                     </div>
                 </div>
@@ -191,21 +174,24 @@
 
         let mapsLoaded = false;
         let results = [];
+        let map, directionsRenderer, directionsService;
+        let finalPoints = [];
+        let currentApiKey = '';
+
         const currentOrigin = window.location.origin || (window.location.protocol + "//" + window.location.host);
-        const isLocal = window.location.protocol === 'file:';
-        
-        document.getElementById('domain-value').innerText = isLocal ? "Local: Usa 'Ninguna' en restricciones" : currentOrigin + "/*";
+        document.getElementById('domain-value').innerText = currentOrigin + "/*";
 
         document.getElementById('api-key-input').addEventListener('input', function(e) {
             const key = e.target.value.trim();
-            if (key.length > 20) loadGoogleMaps(key);
+            if (key.length > 20) {
+                currentApiKey = key;
+                loadGoogleMaps(key);
+            }
         });
 
         window.gm_authFailure = function() {
-            showError("Google rechazó tu clave. Verifica las restricciones de dominio.");
-            document.getElementById('status-dot').className = "w-2 h-2 rounded-full bg-red-500 animate-pulse";
-            document.getElementById('status-text').innerText = "Fallo de Autorización";
-            document.getElementById('help-panel').classList.remove('hidden');
+            showError("Error de autenticación. Revisa tu API Key y permisos de dominio.");
+            document.getElementById('status-dot').className = "w-2 h-2 rounded-full bg-red-500";
         };
 
         function loadGoogleMaps(key) {
@@ -220,61 +206,81 @@
                 mapsLoaded = true;
                 document.getElementById('status-dot').className = "w-2 h-2 rounded-full bg-emerald-500 shadow-md";
                 document.getElementById('status-text').innerText = "Servicio Listo";
+                initMap();
                 hideError();
             };
-            script.onerror = () => showError("Error al conectar con Google.");
+            script.onerror = () => showError("Fallo al cargar Google Maps SDK.");
             document.head.appendChild(script);
         }
 
+        function initMap() {
+            if (!mapsLoaded) return;
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 5,
+                center: { lat: 23.6345, lng: -102.5528 }, // Centro de México
+                styles: [{ featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] }]
+            });
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer({
+                map: map,
+                panel: null,
+                suppressMarkers: false,
+                polylineOptions: { strokeColor: "#4f46e5", strokeWeight: 5 }
+            });
+        }
+
         async function startProcess() {
-            if (!mapsLoaded) return showError("Verifica tu API Key primero.");
+            if (!mapsLoaded) return showError("Ingresa tu API Key primero.");
             const input = document.getElementById('locations-input').value.trim();
             let points = input.split('\n').map(p => p.trim()).filter(p => p.length > 0);
-            if (points.length < 2) return showError("Ingresa al menos 2 paradas.");
+            if (points.length < 2) return showError("Ingresa al menos 2 direcciones.");
 
             hideError();
             results = [];
             const optimize = document.getElementById('optimize-toggle').checked;
             const btn = document.getElementById('btn-calculate');
-            const progressCont = document.getElementById('progress-container');
             const bar = document.getElementById('progress-bar');
             
             btn.disabled = true;
-            btn.innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i> ${optimize ? 'Optimizando...' : 'Procesando...'}`;
+            btn.innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i> Procesando...`;
             lucide.createIcons();
             
-            progressCont.classList.remove('hidden');
+            document.getElementById('progress-container').classList.remove('hidden');
             document.getElementById('empty-state').classList.add('hidden');
             document.getElementById('results-table').classList.remove('hidden');
+            document.getElementById('map-container').classList.remove('hidden');
             document.getElementById('results-body').innerHTML = "";
-            document.getElementById('optim-badge').classList.toggle('hidden', !optimize);
 
-            // Algoritmo de Optimización (TSP mediante Vecino más Cercano)
+            // Optimización si es necesario
             if (optimize) {
                 try {
                     points = await optimizeRoute(points);
                 } catch (e) {
-                    showError("Error al optimizar: " + e);
+                    showError("Error en optimización: " + e);
                     btn.disabled = false;
                     return;
                 }
             }
+            finalPoints = points;
 
-            const service = new google.maps.DistanceMatrixService();
+            // Dibujar en el Mapa
+            drawOnMap(points);
+
+            const matrixService = new google.maps.DistanceMatrixService();
             let totalMeters = 0, totalSeconds = 0;
 
             for (let i = 0; i < points.length - 1; i++) {
                 const origin = points[i];
                 const dest = points[i+1];
-                if (i > 0) await new Promise(r => setTimeout(r, 400));
+                if (i > 0) await new Promise(r => setTimeout(r, 350));
 
                 try {
                     const response = await new Promise((resolve, reject) => {
-                        service.getDistanceMatrix({
+                        matrixService.getDistanceMatrix({
                             origins: [origin],
                             destinations: [dest],
                             travelMode: 'DRIVING'
-                        }, (res, status) => (status === 'OK' ? resolve(res) : reject(status)));
+                        }, (res, status) => status === 'OK' ? resolve(res) : reject(status));
                     });
 
                     const element = response.rows[0].elements[0];
@@ -296,107 +302,117 @@
                     addTableRow(rowData, i + 1);
                     bar.style.width = Math.round(((i + 1) / (points.length - 1)) * 100) + "%";
                 } catch (err) {
-                    showError("Error en API: " + err);
+                    showError("Error de cálculo: " + err);
                     break;
                 }
             }
 
             btn.disabled = false;
-            btn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i> Calcular Ruta`;
+            btn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i> Calcular y Dibujar`;
             lucide.createIcons();
             document.getElementById('total-km').innerText = (totalMeters / 1000).toFixed(1) + " km";
             document.getElementById('total-time').innerText = Math.round(totalSeconds / 60) + " min";
             if (results.length > 0) document.getElementById('btn-export').classList.remove('hidden');
         }
 
-        // Función para optimizar el orden (Algoritmo: Nearest Neighbor)
+        function drawOnMap(points) {
+            const waypoints = points.slice(1, -1).map(p => ({ location: p, stopover: true }));
+            directionsService.route({
+                origin: points[0],
+                destination: points[points.length - 1],
+                waypoints: waypoints,
+                travelMode: 'DRIVING'
+            }, (response, status) => {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(response);
+                } else {
+                    console.error("Fallo al dibujar mapa: " + status);
+                }
+            });
+        }
+
         async function optimizeRoute(points) {
             const service = new google.maps.DistanceMatrixService();
-            // Google permite hasta 25 orígenes/destinos por llamada
-            if (points.length > 25) throw "La optimización solo soporta hasta 25 paradas.";
-
-            // Paso 1: Obtener matriz completa entre todos los puntos
-            const matrixResponse = await new Promise((resolve, reject) => {
+            if (points.length > 25) throw "Límite de 25 puntos para optimización.";
+            const res = await new Promise((resolve, reject) => {
                 service.getDistanceMatrix({
                     origins: points,
                     destinations: points,
                     travelMode: 'DRIVING'
-                }, (res, status) => status === 'OK' ? resolve(res) : reject(status));
+                }, (r, s) => s === 'OK' ? resolve(r) : reject(s));
+            });
+            const optimized = [points[0]];
+            const unvisited = Array.from({length: points.length - 1}, (_, i) => i + 1);
+            let current = 0;
+            while (unvisited.length > 0) {
+                let closest = -1, minDist = Infinity;
+                for (let i = 0; i < unvisited.length; i++) {
+                    const idx = unvisited[i];
+                    const d = res.rows[current].elements[idx].distance.value;
+                    if (d < minDist) { minDist = d; closest = i; }
+                }
+                const nextIdx = unvisited[closest];
+                optimized.push(points[nextIdx]);
+                current = nextIdx;
+                unvisited.splice(closest, 1);
+            }
+            return optimized;
+        }
+
+        function openStaticMap() {
+            if (finalPoints.length < 2) return;
+            // Generar URL para Static Maps API
+            // Formato: markers=color:red|label:A|Dir1&markers=color:blue|label:B|Dir2&path=Dir1|Dir2
+            const baseUrl = "https://maps.googleapis.com/maps/api/staticmap?";
+            const size = "size=800x600";
+            const mapType = "maptype=roadmap";
+            let markers = "";
+            let path = "path=color:0x4f46e5ff|weight:5";
+
+            finalPoints.forEach((p, i) => {
+                const label = i === 0 ? "I" : (i === finalPoints.length - 1 ? "F" : i);
+                const color = i === 0 ? "green" : (i === finalPoints.length - 1 ? "red" : "blue");
+                markers += `&markers=color:${color}|label:${label}|${encodeURIComponent(p)}`;
+                path += `|${encodeURIComponent(p)}`;
             });
 
-            const optimizedOrder = [points[0]]; // Mantener el primero fijo
-            const unvisitedIndices = Array.from({length: points.length - 1}, (_, i) => i + 1);
-            let currentIndex = 0;
-
-            while (unvisitedIndices.length > 0) {
-                let closestIndex = -1;
-                let minDistance = Infinity;
-
-                for (let i = 0; i < unvisitedIndices.length; i++) {
-                    const nextIdx = unvisitedIndices[i];
-                    const dist = matrixResponse.rows[currentIndex].elements[nextIdx].distance.value;
-                    
-                    if (dist < minDistance) {
-                        minDistance = dist;
-                        closestIndex = i;
-                    }
-                }
-
-                const actualPointIndex = unvisitedIndices[closestIndex];
-                optimizedOrder.push(points[actualPointIndex]);
-                currentIndex = actualPointIndex;
-                unvisitedIndices.splice(closestIndex, 1);
-            }
-
-            return optimizedOrder;
+            const finalUrl = `${baseUrl}${size}&${mapType}${markers}&${path}&key=${currentApiKey}`;
+            window.open(finalUrl, '_blank');
         }
 
         function addTableRow(item, index) {
             const body = document.getElementById('results-body');
             const row = document.createElement('tr');
-            row.className = item.error ? "bg-red-50" : "hover:bg-slate-50/30 transition-colors";
             row.innerHTML = `
-                <td class="px-8 py-6 font-black italic text-slate-200 text-lg">${index.toString().padStart(2, '0')}</td>
+                <td class="px-8 py-6 font-black italic text-slate-200 text-lg">${index}</td>
                 <td class="px-8 py-6">
-                    <div class="flex flex-col gap-1">
-                        <span class="text-[10px] text-slate-400 font-bold truncate max-w-[200px] uppercase">${item.desde}</span>
-                        <div class="flex items-center gap-2">
-                            <div class="w-1.5 h-1.5 rounded-full ${item.error ? 'bg-red-400' : 'bg-indigo-500'}"></div>
-                            <span class="text-sm font-bold text-slate-700 truncate max-w-[200px]">${item.hasta}</span>
-                        </div>
-                    </div>
+                    <div class="flex flex-col"><span class="text-[10px] text-slate-400 font-bold uppercase">${item.desde}</span>
+                    <span class="text-sm font-bold text-slate-700">${item.hasta}</span></div>
                 </td>
-                <td class="px-8 py-6 text-center font-black text-slate-900 text-sm">
-                    ${item.error ? `<span class="text-red-500 uppercase text-[10px] font-bold">${item.errorMsg}</span>` : item.distancia}
-                </td>
+                <td class="px-8 py-6 text-center font-bold text-slate-900">${item.error ? '—' : item.distancia}</td>
                 <td class="px-8 py-6 text-center">
-                    ${!item.error ? `<span class="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-[10px] font-black border border-indigo-100">${item.duracion}</span>` : "—"}
+                    ${item.error ? `<span class="text-red-500 text-[10px]">${item.errorMsg}</span>` : 
+                    `<span class="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-[10px] font-black">${item.duracion}</span>`}
                 </td>
             `;
             body.appendChild(row);
         }
 
         function exportToCSV() {
-            if (results.length === 0) return;
             const headers = ['Orden', 'Desde', 'Hasta', 'Distancia', 'Tiempo'];
-            const rows = results.map((r, i) => [i + 1, `"${r.desde}"`, `"${r.hasta}"`, `"${r.distancia || 'Error'}"`, `"${r.duracion || 'Error'}"`]);
-            const csvContent = "\uFEFF" + [headers, ...rows].map(e => e.join(",")).join("\n");
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
+            const rows = results.map((r, i) => [i + 1, `"${r.desde}"`, `"${r.hasta}"`, `"${r.distancia}"`, `"${r.duracion}"`]);
+            const content = "\uFEFF" + [headers, ...rows].map(e => e.join(",")).join("\n");
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
-            link.href = url;
-            link.download = `reporte_logistica_optimizado.csv`;
+            link.href = URL.createObjectURL(blob);
+            link.download = "reporte_logistica_con_mapa.csv";
             link.click();
         }
 
         function toggleHelp() { document.getElementById('help-panel').classList.toggle('hidden'); }
         function copyDomain() {
-            const val = document.getElementById('domain-value').innerText;
-            const temp = document.createElement('textarea');
-            temp.value = val; document.body.appendChild(temp);
-            temp.select(); document.execCommand('copy');
-            document.body.removeChild(temp);
-            alert("¡Copiado! Pégalo en tu consola de Google.");
+            navigator.clipboard.writeText(document.getElementById('domain-value').innerText);
+            alert("Dominio copiado.");
         }
         function showError(msg) {
             document.getElementById('error-text').innerText = msg;
@@ -406,3 +422,4 @@
     </script>
 </body>
 </html>
+
