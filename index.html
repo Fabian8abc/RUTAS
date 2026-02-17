@@ -14,7 +14,16 @@
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        #map { height: 500px; width: 100%; border-radius: 1.5rem; }
+        #map { height: 500px; width: 100%; border-radius: 1.5rem; border: 1px solid #e2e8f0; }
+        .loading-shimmer {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
@@ -41,7 +50,7 @@
                 <input 
                     type="password" 
                     id="api-key-input" 
-                    placeholder="Google Maps API Key..." 
+                    placeholder="API Key de Google..." 
                     class="text-xs outline-none w-48 md:w-64 bg-transparent font-mono"
                 >
                 <button onclick="toggleHelp()" class="p-1.5 hover:bg-indigo-50 rounded-xl text-indigo-600 transition-colors">
@@ -53,19 +62,19 @@
         <!-- Ayuda de Configuración -->
         <div id="help-panel" class="hidden mb-8 bg-white border-2 border-indigo-100 p-6 rounded-[2rem] shadow-sm">
             <div class="flex justify-between items-start mb-4">
-                <h3 class="text-slate-900 font-bold text-sm">Configuración para Zonas Fronterizas</h3>
+                <h3 class="text-slate-900 font-bold text-sm">Modo Drástico de Restricción</h3>
                 <button onclick="toggleHelp()" class="text-slate-400 font-bold hover:text-red-500">✕</button>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-slate-600 leading-relaxed">
                 <div class="bg-slate-50 p-4 rounded-xl">
-                    <p class="font-bold text-indigo-600 mb-2">¿Cómo forzamos el mapa?</p>
-                    1. <strong>Geocodificación MX:</strong> Obligamos a Google a buscar las coordenadas solo dentro de México.<br>
-                    2. <strong>Restricción de Región:</strong> Se fuerza el parámetro 'mx' en cada cálculo.<br>
-                    3. <strong>Evitar Peajes:</strong> Al activar "Solo México", evitamos puentes internacionales que Google marca como peajes.
+                    <p class="font-bold text-red-600 mb-2 italic">⚠️ ¿Por qué sigue cruzando?</p>
+                    Google prioriza la velocidad. Para evitarlo, esta versión activa <strong>"Evitar Autopistas"</strong> al restringir a México, ya que casi todas las rutas por EUA usan Interstates. Esto obliga al mapa a buscar las carreteras federales de México.
                 </div>
                 <div class="bg-indigo-50 p-4 rounded-xl">
-                    <p class="font-bold text-indigo-600 mb-2">Consejo:</p>
-                    Si Google sigue cruzando a EUA debido a que la carretera en México es muy lenta, te recomendamos añadir un punto de paso intermedio como <strong>"Tecate, México"</strong> para forzar la trayectoria por territorio nacional.
+                    <p class="font-bold text-indigo-600 mb-2">Configuración Geográfica:</p>
+                    Región forzada: <strong>mx</strong><br>
+                    País forzado: <strong>México</strong><br>
+                    Evitar Peajes: <strong>Sí (Modo Forzado)</strong>
                 </div>
             </div>
         </div>
@@ -81,28 +90,28 @@
 
                     <textarea 
                         id="locations-input"
-                        placeholder="Ejemplo:&#10;Tijuana, Centro&#10;Mexicali, Centro"
+                        placeholder="Tijuana, Centro&#10;Mexicali, Centro"
                         class="w-full h-56 p-5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 outline-none text-sm resize-none font-mono transition-all"
                     ></textarea>
 
                     <div class="mt-4 space-y-3">
                         <label class="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100 cursor-pointer hover:bg-slate-100 transition-colors">
                             <input type="checkbox" id="optimize-toggle" class="w-5 h-5 rounded border-slate-300 text-indigo-600" checked>
-                            <span class="text-xs font-bold text-slate-700">Optimizar orden de paradas</span>
+                            <span class="text-xs font-bold text-slate-700">Optimizar orden (Recomendado)</span>
                         </label>
 
-                        <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
-                            <p class="text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-3 flex items-center gap-1">
-                                <i data-lucide="shield-check" class="w-3 h-3"></i> Restricción Territorial
+                        <div class="p-4 bg-red-50 rounded-2xl border border-red-100">
+                            <p class="text-[10px] font-black text-red-700 uppercase tracking-widest mb-3 flex items-center gap-1">
+                                <i data-lucide="shield-alert" class="w-3 h-3"></i> Restricción Drástica
                             </p>
                             <div class="flex flex-col gap-3">
-                                <label class="flex items-center gap-2 text-xs font-bold text-emerald-900 cursor-pointer">
-                                    <input type="radio" name="region-restrict" value="mx" checked class="w-4 h-4 text-emerald-600">
-                                    <span>Solo México (Forzar Frontera)</span>
+                                <label class="flex items-center gap-2 text-xs font-bold text-red-900 cursor-pointer">
+                                    <input type="radio" name="region-restrict" value="mx" checked class="w-4 h-4 text-red-600">
+                                    <span>FORZAR MÉXICO (Evitar EUA)</span>
                                 </label>
                                 <label class="flex items-center gap-2 text-xs font-medium text-slate-500 cursor-pointer">
                                     <input type="radio" name="region-restrict" value="none" class="w-4 h-4 text-slate-400">
-                                    <span>Ruta Libre (Permitir EUA)</span>
+                                    <span>Ruta Libre (Internacional)</span>
                                 </label>
                             </div>
                         </div>
@@ -111,15 +120,25 @@
                     <button 
                         id="btn-calculate"
                         onclick="startProcess()"
-                        class="w-full mt-6 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all bg-indigo-600 text-white hover:bg-indigo-700 shadow-xl shadow-indigo-200"
+                        class="w-full mt-6 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all bg-indigo-600 text-white hover:bg-indigo-700 shadow-xl shadow-indigo-200 active:scale-95"
                     >
                         <i data-lucide="play" class="w-4 h-4 fill-current"></i>
                         Generar Ruta Forzada
                     </button>
+                    
+                    <div id="progress-container" class="hidden mt-4">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase">Progreso del Cálculo</span>
+                            <span id="progress-percent" class="text-[10px] font-bold text-indigo-600">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-1.5">
+                            <div id="progress-bar" class="bg-indigo-600 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="error-box" class="hidden bg-red-50 border border-red-200 p-5 rounded-3xl flex items-start gap-3">
-                    <i data-lucide="alert-octagon" class="w-5 h-5 text-red-500 shrink-0"></i>
+                    <i data-lucide="alert-triangle" class="w-5 h-5 text-red-500 shrink-0"></i>
                     <p id="error-text" class="text-xs text-red-700 leading-relaxed font-bold"></p>
                 </div>
             </div>
@@ -129,7 +148,7 @@
                 <!-- Mapa -->
                 <div id="map-container" class="hidden bg-white rounded-[2rem] shadow-sm border border-slate-200 p-4 relative overflow-hidden">
                     <div class="absolute top-6 right-6 z-10 flex gap-2">
-                        <button onclick="openStaticMap()" class="bg-white/90 backdrop-blur px-4 py-2 rounded-xl border border-slate-200 shadow-sm text-[10px] font-bold text-slate-700 hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-2">
+                        <button onclick="openStaticMap()" class="bg-white/95 backdrop-blur px-4 py-2 rounded-xl border border-slate-200 shadow-sm text-[10px] font-bold text-slate-700 hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-2">
                             <i data-lucide="camera" class="w-4 h-4"></i> Capturar Imagen
                         </button>
                     </div>
@@ -140,11 +159,11 @@
                 <div class="bg-white rounded-[2rem] shadow-sm border border-slate-200 min-h-[400px] flex flex-col overflow-hidden">
                     <div class="p-8 border-b border-slate-100 flex items-center justify-between bg-white/50 backdrop-blur-md">
                         <div>
-                            <h2 class="font-bold text-xl text-slate-900">Reporte de Operación</h2>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1" id="report-meta">Esperando cálculo...</p>
+                            <h2 class="font-bold text-xl text-slate-900 leading-tight">Reporte Rutas Perfiles</h2>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1" id="report-meta">Esperando datos de origen y destino...</p>
                         </div>
-                        <button id="btn-export" onclick="exportToCSV()" class="hidden flex items-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-xl text-xs font-bold hover:bg-emerald-700 transition-all shadow-lg">
-                            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Descargar Excel
+                        <button id="btn-export" onclick="exportToCSV()" class="hidden flex items-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-xl text-xs font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100">
+                            <i data-lucide="download" class="w-4 h-4"></i> Descargar Excel
                         </button>
                     </div>
 
@@ -153,7 +172,7 @@
                             <thead>
                                 <tr class="bg-slate-50/50 text-slate-400 text-[9px] uppercase tracking-[0.2em] font-black border-b border-slate-100">
                                     <th class="px-8 py-4 text-center">Tramo</th>
-                                    <th class="px-8 py-4">Punto Origen / Destino</th>
+                                    <th class="px-8 py-4">Punto A → Punto B</th>
                                     <th class="px-8 py-4 text-center">Distancia</th>
                                     <th class="px-8 py-4 text-center">Tiempo</th>
                                 </tr>
@@ -161,7 +180,7 @@
                             <tbody id="results-body" class="divide-y divide-slate-100"></tbody>
                             <tfoot class="bg-slate-900 text-white">
                                 <tr>
-                                    <td colSpan="2" class="px-8 py-6 text-right font-bold text-[10px] uppercase tracking-widest text-slate-500">Totales:</td>
+                                    <td colSpan="2" class="px-8 py-6 text-right font-bold text-[10px] uppercase tracking-widest text-slate-500">Totales Estimados:</td>
                                     <td class="px-8 py-6 text-center border-l border-white/5 font-black text-emerald-400 text-lg" id="total-km">0 km</td>
                                     <td class="px-8 py-6 text-center border-l border-white/5 font-black text-white text-lg" id="total-time">0 min</td>
                                 </tr>
@@ -170,7 +189,7 @@
 
                         <div id="empty-state" class="flex flex-col items-center justify-center h-64 text-slate-300 py-32">
                             <i data-lucide="map-pinned" class="w-16 h-16 opacity-10 mb-4"></i>
-                            <p class="text-xs font-bold uppercase tracking-widest">Esperando cálculo de trayecto</p>
+                            <p class="text-xs font-bold uppercase tracking-widest">Sin trayectos calculados</p>
                         </div>
                     </div>
                 </div>
@@ -200,17 +219,18 @@
             if (oldScript) oldScript.remove();
             const script = document.createElement('script');
             script.id = 'google-maps-js';
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=geometry&language=es-419&region=MX`;
+            // Forzamos región mx y lenguaje es-419
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=geometry&language=es-419&region=mx`;
             script.async = true;
             script.defer = true;
             script.onload = () => {
                 mapsLoaded = true;
-                document.getElementById('status-dot').className = "w-2 h-2 rounded-full bg-emerald-500 shadow-lg";
-                document.getElementById('status-text').innerText = "Servicio MX Activo";
+                document.getElementById('status-dot').className = "w-2 h-2 rounded-full bg-emerald-500 shadow-lg shadow-emerald-200";
+                document.getElementById('status-text').innerText = "Servicio Activo (MX)";
                 initMap();
                 hideError();
             };
-            script.onerror = () => showError("API Key no válida o error de red.");
+            script.onerror = () => showError("Error de carga. Revisa tu API Key de Google.");
             document.head.appendChild(script);
         }
 
@@ -225,7 +245,7 @@
             geocoder = new google.maps.Geocoder();
             directionsRenderer = new google.maps.DirectionsRenderer({
                 map: map,
-                polylineOptions: { strokeColor: "#4f46e5", strokeWeight: 6 }
+                polylineOptions: { strokeColor: "#4f46e5", strokeWeight: 6, strokeOpacity: 0.9 }
             });
         }
 
@@ -242,40 +262,51 @@
         };
 
         async function startProcess() {
-            if (!mapsLoaded) return showError("Debes conectar la API Key.");
+            if (!mapsLoaded) return showError("Servicio de mapas no listo.");
             const input = document.getElementById('locations-input').value.trim();
             let rawPoints = input.split('\n').map(p => p.trim()).filter(p => p.length > 0);
-            if (rawPoints.length < 2) return showError("Ingresa al menos origen y destino.");
+            if (rawPoints.length < 2) return showError("Ingresa origen y destino.");
 
             hideError();
             const optimize = document.getElementById('optimize-toggle').checked;
             const restrictMexico = document.querySelector('input[name="region-restrict"]:checked').value === 'mx';
 
             const btn = document.getElementById('btn-calculate');
+            const progressCont = document.getElementById('progress-container');
+            const bar = document.getElementById('progress-bar');
+            const percentText = document.getElementById('progress-percent');
+            
             btn.disabled = true;
-            btn.innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i> Validando Puntos...`;
+            btn.innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i> Procesando...`;
+            progressCont.classList.remove('hidden');
             lucide.createIcons();
 
             try {
+                // PASO 1: Geocodificación Estricta
                 let latLngPoints = [];
-                for(let p of rawPoints) {
-                    const loc = await geocodeMX(restrictMexico ? p + ", México" : p);
-                    latLngPoints.push({ name: p, location: loc });
+                for(let i = 0; i < rawPoints.length; i++) {
+                    btn.innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i> Ubicando (${i+1}/${rawPoints.length})`;
+                    const loc = await geocodeMX(restrictMexico ? rawPoints[i] + ", México" : rawPoints[i]);
+                    latLngPoints.push({ name: rawPoints[i], location: loc });
                 }
 
                 document.getElementById('empty-state').classList.add('hidden');
                 document.getElementById('results-table').classList.remove('hidden');
                 document.getElementById('map-container').classList.remove('hidden');
                 document.getElementById('results-body').innerHTML = "";
-                document.getElementById('report-meta').innerText = restrictMexico ? "RESTRICCIÓN: SOLO CAMINOS NACIONALES" : "RUTA: MODO LIBRE";
+                document.getElementById('report-meta').innerText = restrictMexico ? "LOGÍSTICA: FORZANDO TERRITORIO NACIONAL" : "LOGÍSTICA: RUTA LIBRE";
 
+                // PASO 2: Optimización (TSP)
                 if (optimize) {
+                    btn.innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i> Optimizando...`;
                     latLngPoints = await optimizeRouteLatLng(latLngPoints, restrictMexico);
                 }
                 finalPoints = latLngPoints;
 
+                // PASO 3: Dibujar Ruta con Bloqueos de Autopista
                 drawOnMap(latLngPoints, restrictMexico);
 
+                // PASO 4: Matriz de Distancia con Bloqueos
                 const matrixService = new google.maps.DistanceMatrixService();
                 let totalMeters = 0, totalSeconds = 0;
                 results = [];
@@ -283,15 +314,16 @@
                 for (let i = 0; i < latLngPoints.length - 1; i++) {
                     const origin = latLngPoints[i].location;
                     const dest = latLngPoints[i+1].location;
-                    if (i > 0) await new Promise(r => setTimeout(r, 500));
+                    if (i > 0) await new Promise(r => setTimeout(r, 450));
 
                     const response = await new Promise((resolve, reject) => {
                         matrixService.getDistanceMatrix({
                             origins: [origin],
                             destinations: [dest],
                             travelMode: 'DRIVING',
-                            region: 'MX',
-                            avoidTolls: restrictMexico
+                            avoidHighways: restrictMexico, // DRÁSTICO: Evitar autopistas (para no subir a EUA)
+                            avoidTolls: restrictMexico,    // DRÁSTICO: Evitar peajes (cruces fronterizos)
+                            region: 'mx'
                         }, (res, status) => status === 'OK' ? resolve(res) : reject(status));
                     });
 
@@ -307,11 +339,15 @@
                         totalSeconds += element.duration.value;
                     } else {
                         rowData.error = true;
-                        rowData.errorMsg = "Sin acceso terrestre";
+                        rowData.errorMsg = element.status === 'ZERO_RESULTS' ? "Sin paso en MX" : "Error técnico";
                     }
 
                     results.push(rowData);
                     addTableRow(rowData, i + 1);
+                    
+                    const progress = Math.round(((i + 1) / (latLngPoints.length - 1)) * 100);
+                    bar.style.width = progress + "%";
+                    percentText.innerText = progress + "%";
                 }
 
                 document.getElementById('total-km').innerText = (totalMeters / 1000).toFixed(1) + " km";
@@ -319,10 +355,11 @@
                 document.getElementById('btn-export').classList.remove('hidden');
 
             } catch (err) {
-                showError("No se pudo localizar un punto en México. Revisa la ortografía.");
+                showError("Falla de ubicación en México: Asegúrate de escribir bien los nombres.");
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i> Calcular Ruta Forzada`;
+                btn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i> Generar Ruta Forzada`;
+                progressCont.classList.add('hidden');
                 lucide.createIcons();
             }
         }
@@ -334,14 +371,14 @@
                 destination: points[points.length - 1].location,
                 waypoints: waypoints,
                 travelMode: 'DRIVING',
-                region: 'MX',
-                avoidTolls: restrictMexico,
-                provideRouteAlternatives: true
+                avoidHighways: restrictMexico, // DRÁSTICO
+                avoidTolls: restrictMexico,    // DRÁSTICO
+                region: 'mx'
             }, (response, status) => {
                 if (status === 'OK') {
                     directionsRenderer.setDirections(response);
-                } else {
-                    showError("No se encontró una ruta válida en México.");
+                } else if (status === 'ZERO_RESULTS' && restrictMexico) {
+                    showError("No hay ruta continua disponible en México. Intenta añadir un punto intermedio.");
                 }
             });
         }
@@ -354,8 +391,9 @@
                     origins: locations,
                     destinations: locations,
                     travelMode: 'DRIVING',
-                    region: 'MX',
-                    avoidTolls: restrictMexico
+                    avoidHighways: restrictMexico,
+                    avoidTolls: restrictMexico,
+                    region: 'mx'
                 }, (r, s) => s === 'OK' ? resolve(r) : reject(s));
             });
 
@@ -389,7 +427,7 @@
                 markers += `&markers=color:${color}|label:${label}|${latlng}`;
                 path += `|${latlng}`;
             });
-            const url = `${baseUrl}size=1200x800&maptype=roadmap${markers}&${path}&region=MX&key=${currentApiKey}`;
+            const url = `${baseUrl}size=1200x800&maptype=roadmap${markers}&${path}&region=mx&key=${currentApiKey}`;
             window.open(url, '_blank');
         }
 
@@ -419,7 +457,7 @@
             const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
             const a = document.createElement("a");
             a.href = URL.createObjectURL(blob);
-            a.download = `RutasPerfiles_Reporte.csv`;
+            a.download = `Reporte_RutasPerfiles.csv`;
             a.click();
         }
 
@@ -427,10 +465,11 @@
         function showError(msg) {
             document.getElementById('error-text').innerText = msg;
             document.getElementById('error-box').classList.remove('hidden');
-            setTimeout(() => document.getElementById('error-box').classList.add('hidden'), 8000);
+            setTimeout(() => document.getElementById('error-box').classList.add('hidden'), 10000);
         }
         function hideError() { document.getElementById('error-box').classList.add('hidden'); }
     </script>
 </body>
 </html>
+
 
