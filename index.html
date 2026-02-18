@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rutas Perfiles - Control Total de Frontera</title>
+    <title>Rutas Perfiles - Muro Geográfico Estricto</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Iconos Lucide -->
@@ -14,14 +14,10 @@
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        #map { height: 500px; width: 100%; border-radius: 0 0 1.5rem 1.5rem; border: 1px solid #e2e8f0; }
-        .tab-active { border-bottom: 3px solid #4f46e5; color: #4f46e5; font-weight: 800; }
-        .tab-inactive { color: #94a3b8; font-weight: 600; }
-        .error-glow { animation: pulse-red 2s infinite; }
-        @keyframes pulse-red {
-            0%, 100% { background-color: #fef2f2; border-color: #ef4444; }
-            50% { background-color: #fee2e2; border-color: #b91c1c; }
-        }
+        #map { height: 550px; width: 100%; border-radius: 0 0 1.5rem 1.5rem; border: 1px solid #e2e8f0; }
+        .tab-active { border-bottom: 4px solid #4f46e5; color: #4f46e5; font-weight: 800; }
+        .tab-inactive { color: #94a3b8; font-weight: 600; border-bottom: 4px solid transparent; }
+        .violation-row { background-color: #fef2f2; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
@@ -37,8 +33,8 @@
                 <div>
                     <h1 class="text-2xl font-black text-slate-900 leading-none tracking-tight">Rutas Perfiles</h1>
                     <div class="flex items-center gap-2 mt-2">
-                        <div id="status-dot" class="w-2 h-2 rounded-full bg-slate-300"></div>
-                        <p id="status-text" class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Sin conexión</p>
+                        <div id="status-dot" class="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
+                        <p id="status-text" class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Sin conexión API</p>
                     </div>
                 </div>
             </div>
@@ -48,113 +44,112 @@
                 <input 
                     type="password" 
                     id="api-key-input" 
-                    placeholder="API Key de Google..." 
+                    placeholder="Ingrese su API Key de Google..." 
                     class="text-xs outline-none w-48 md:w-64 bg-transparent font-mono"
                 >
             </div>
         </header>
 
         <!-- Tabs de Operación -->
-        <div class="flex gap-8 mb-6 border-b border-slate-200">
-            <button id="tab-mx" onclick="switchTab('mx')" class="tab-active py-4 px-2 flex items-center gap-2 transition-all">
+        <div class="flex gap-8 mb-6 bg-white px-6 rounded-2xl shadow-sm border border-slate-100">
+            <button id="tab-mx" onclick="switchTab('mx')" class="tab-active py-5 px-2 flex items-center gap-2 transition-all">
                 <i data-lucide="shield-check" class="w-4 h-4"></i>
-                Logística Nacional (Solo México)
+                Solo Caminos de México
             </button>
-            <button id="tab-global" onclick="switchTab('global')" class="tab-inactive py-4 px-2 flex items-center gap-2 transition-all">
+            <button id="tab-global" onclick="switchTab('global')" class="tab-inactive py-5 px-2 flex items-center gap-2 transition-all">
                 <i data-lucide="globe" class="w-4 h-4"></i>
-                Internacional (Uso de Visa)
+                Ruta Internacional (EUA)
             </button>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            <!-- Columna Izquierda: Input -->
+            <!-- Columna Izquierda: Entrada -->
             <div class="lg:col-span-4 space-y-4">
                 <div class="bg-white rounded-[2rem] shadow-sm border border-slate-200 p-6 md:p-8">
                     <div class="mb-4">
                         <h2 class="font-bold text-slate-800 flex items-center gap-3">
                             <i data-lucide="map-pin" class="text-indigo-500 w-5 h-5"></i>
-                            Ruta de Unidades
+                            Puntos de Ruta
                         </h2>
-                        <p id="mode-badge" class="text-[9px] bg-indigo-50 text-indigo-600 font-black px-2 py-0.5 rounded mt-2 inline-block uppercase tracking-wider">Modo Nacional Activo</p>
+                        <p id="mode-text" class="text-[10px] text-red-600 font-black uppercase mt-1">Restricción Total: Prohibido cruzar la frontera</p>
                     </div>
 
                     <textarea 
                         id="locations-input"
-                        placeholder="Origen (Ej. Monterrey)&#10;Punto intermedio (Opcional)&#10;Destino (Ej. Tijuana)"
-                        class="w-full h-64 p-5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 outline-none text-sm resize-none font-mono transition-all"
+                        placeholder="Ejemplo:&#10;Monterrey, NL&#10;Chihuahua, CH&#10;Tijuana, BC"
+                        class="w-full h-64 p-5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 outline-none text-sm resize-none font-mono transition-all custom-scrollbar"
                     ></textarea>
 
-                    <div class="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-3">
-                        <input type="checkbox" id="optimize-toggle" class="w-5 h-5 rounded border-slate-300 text-indigo-600">
-                        <label for="optimize-toggle" class="text-xs font-bold text-slate-700 leading-tight">
-                            Optimizar paradas intermedias
+                    <div class="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-3 shadow-inner">
+                        <input type="checkbox" id="optimize-toggle" class="w-5 h-5 rounded border-slate-300 text-indigo-600 cursor-pointer">
+                        <label for="optimize-toggle" class="text-[11px] font-bold text-slate-700 leading-tight cursor-pointer">
+                            Optimizar orden (Mantener inicio fijo)
                         </label>
                     </div>
 
                     <button 
                         id="btn-calculate"
                         onclick="startProcess()"
-                        class="w-full mt-6 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all bg-indigo-600 text-white hover:bg-indigo-700 shadow-xl shadow-indigo-200"
+                        class="w-full mt-6 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all bg-indigo-600 text-white hover:bg-indigo-700 shadow-xl shadow-indigo-200 active:scale-95 disabled:opacity-50"
                     >
                         <i data-lucide="play" class="w-4 h-4 fill-current"></i>
-                        Calcular Reporte
+                        Generar Reporte Seguro
                     </button>
                 </div>
 
-                <!-- Alerta de Restricción -->
-                <div id="error-box" class="hidden bg-red-50 border-2 border-red-200 p-5 rounded-[2rem] flex items-start gap-4 shadow-sm error-glow">
-                    <div class="bg-red-500 p-2 rounded-lg text-white">
-                        <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                <div id="error-box" class="hidden bg-red-50 border-2 border-red-200 p-5 rounded-[2rem] flex items-start gap-4 shadow-md">
+                    <div class="bg-red-500 p-2 rounded-lg text-white shadow-lg">
+                        <i data-lucide="shield-off" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <p class="text-[10px] text-red-800 font-black uppercase tracking-widest">Restricción de Seguridad</p>
+                        <p class="text-[10px] text-red-800 font-black uppercase tracking-widest">Alerta Fronteriza</p>
                         <p id="error-text" class="text-xs text-red-700 leading-relaxed font-bold mt-1"></p>
                     </div>
                 </div>
             </div>
 
-            <!-- Columna Derecha: Mapa y Reporte -->
+            <!-- Columna Derecha: Mapa y Datos -->
             <div class="lg:col-span-8 space-y-6">
                 <!-- Mapa -->
                 <div id="map-container" class="hidden">
-                    <div class="bg-slate-900 text-white p-4 rounded-t-[1.5rem] flex justify-between items-center">
-                        <div class="flex items-center gap-2">
-                            <i data-lucide="navigation" class="w-4 h-4 text-indigo-400"></i>
-                            <span id="map-header-text" class="text-[10px] font-bold uppercase tracking-widest">Visualización por México</span>
+                    <div class="bg-slate-900 text-white p-4 rounded-t-[1.5rem] flex justify-between items-center border-b border-slate-700">
+                        <div class="flex items-center gap-3">
+                            <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
+                            <span id="map-header-text" class="text-[10px] font-black uppercase tracking-widest">Mapa con Restricción MX</span>
                         </div>
-                        <button onclick="exportToCSV()" class="text-[10px] bg-emerald-600 px-3 py-1.5 rounded-lg font-bold hover:bg-emerald-500 flex items-center gap-2 transition-colors">
-                            <i data-lucide="download" class="w-3.5 h-3.5"></i> Excel (CSV)
+                        <button onclick="exportToCSV()" class="text-[10px] bg-emerald-600 px-4 py-2 rounded-xl font-bold hover:bg-emerald-500 flex items-center gap-2 transition-all shadow-lg">
+                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Exportar a Excel
                         </button>
                     </div>
                     <div id="map"></div>
                 </div>
 
-                <!-- Tabla de Resultados -->
+                <!-- Tabla -->
                 <div id="results-container" class="hidden bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
                     <table class="w-full text-left">
                         <thead>
-                            <tr class="bg-slate-50/80 text-slate-400 text-[9px] uppercase tracking-widest font-black border-b border-slate-100">
-                                <th class="px-8 py-4">Tramo</th>
-                                <th class="px-8 py-4">De / A</th>
-                                <th class="px-8 py-4 text-center">Distancia</th>
-                                <th class="px-8 py-4 text-center">Tiempo Est.</th>
+                            <tr class="bg-slate-50 text-slate-400 text-[9px] uppercase tracking-widest font-black border-b border-slate-100">
+                                <th class="px-8 py-5 text-center">Tramo</th>
+                                <th class="px-8 py-5">Recorrido</th>
+                                <th class="px-8 py-5 text-center">Distancia</th>
+                                <th class="px-8 py-5 text-center">Tiempo</th>
                             </tr>
                         </thead>
                         <tbody id="results-body" class="divide-y divide-slate-100 text-sm font-medium"></tbody>
-                        <tfoot class="bg-slate-900 text-white">
+                        <tfoot class="bg-indigo-900 text-white">
                             <tr>
-                                <td colSpan="2" class="px-8 py-6 text-right font-bold text-[10px] uppercase tracking-widest opacity-50">Total Acumulado:</td>
-                                <td class="px-8 py-6 text-center border-l border-white/5 font-black text-emerald-400 text-lg" id="total-km">0 km</td>
-                                <td class="px-8 py-6 text-center border-l border-white/5 font-black text-white text-lg" id="total-time">0 min</td>
+                                <td colSpan="2" class="px-8 py-6 text-right font-bold text-[10px] uppercase tracking-widest opacity-50">Reporte Final Acumulado:</td>
+                                <td class="px-8 py-6 text-center border-l border-white/5 font-black text-emerald-400 text-xl" id="total-km">0 km</td>
+                                <td class="px-8 py-6 text-center border-l border-white/5 font-black text-white text-xl" id="total-time">0 min</td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
 
-                <div id="empty-state" class="flex flex-col items-center justify-center h-full text-slate-300 py-32">
-                    <i data-lucide="map-pinned" class="w-16 h-16 opacity-10 mb-4"></i>
-                    <p class="text-xs font-bold uppercase tracking-widest">Ingrese el listado de puntos para iniciar</p>
+                <div id="empty-state" class="flex flex-col items-center justify-center h-full text-slate-300 py-48 bg-white rounded-[2rem] border border-dashed border-slate-200">
+                    <i data-lucide="map-pinned" class="w-20 h-20 opacity-10 mb-4"></i>
+                    <p class="text-sm font-bold uppercase tracking-widest">Ingrese los destinos para calcular la ruta nacional</p>
                 </div>
             </div>
         </div>
@@ -172,11 +167,11 @@
 
         function switchTab(mode) {
             currentMode = mode;
-            document.getElementById('tab-mx').className = mode === 'mx' ? 'tab-active py-4 px-2 flex items-center gap-2' : 'tab-inactive py-4 px-2 flex items-center gap-2';
-            document.getElementById('tab-global').className = mode === 'global' ? 'tab-active py-4 px-2 flex items-center gap-2' : 'tab-inactive py-4 px-2 flex items-center gap-2';
-            document.getElementById('mode-badge').innerText = mode === 'mx' ? 'Modo Nacional Activo' : 'Modo Internacional Activo';
-            document.getElementById('mode-badge').className = mode === 'mx' ? 'text-[9px] bg-indigo-50 text-indigo-600 font-black px-2 py-0.5 rounded mt-2 inline-block uppercase tracking-wider' : 'text-[9px] bg-emerald-50 text-emerald-600 font-black px-2 py-0.5 rounded mt-2 inline-block uppercase tracking-wider';
-            document.getElementById('map-header-text').innerText = mode === 'mx' ? 'Visualización por México' : 'Visualización Internacional';
+            document.getElementById('tab-mx').className = mode === 'mx' ? 'tab-active py-5 px-2 flex items-center gap-2 transition-all' : 'tab-inactive py-5 px-2 flex items-center gap-2 transition-all';
+            document.getElementById('tab-global').className = mode === 'global' ? 'tab-active py-5 px-2 flex items-center gap-2 transition-all' : 'tab-inactive py-5 px-2 flex items-center gap-2 transition-all';
+            document.getElementById('mode-text').innerText = mode === 'mx' ? 'Restricción Total: Prohibido cruzar la frontera' : 'Ruta Libre: El sistema usará vías de EUA si son más rápidas';
+            document.getElementById('mode-text').className = mode === 'mx' ? 'text-[10px] text-red-600 font-black uppercase mt-1' : 'text-[10px] text-emerald-600 font-black uppercase mt-1';
+            document.getElementById('map-header-text').innerText = mode === 'mx' ? 'Mapa con Restricción MX' : 'Mapa Internacional (Ruta Libre)';
             lucide.createIcons();
         }
 
@@ -195,8 +190,8 @@
             script.defer = true;
             script.onload = () => {
                 mapsLoaded = true;
-                document.getElementById('status-dot').className = "w-2 h-2 rounded-full bg-emerald-500 shadow-md shadow-emerald-200 animate-pulse";
-                document.getElementById('status-text').innerText = "Servicio Activo";
+                document.getElementById('status-dot').className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-md";
+                document.getElementById('status-text').innerText = "Motor Conectado";
                 initMap();
             };
             document.head.appendChild(script);
@@ -206,17 +201,19 @@
             map = new google.maps.Map(document.getElementById("map"), {
                 zoom: 5,
                 center: { lat: 23.6345, lng: -102.5528 },
-                styles: [{ featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] }]
+                styles: [
+                    { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] },
+                    { featureType: "administrative.country", elementType: "geometry.stroke", stylers: [{ color: "#4f46e5" }, { weight: 2 }] }
+                ]
             });
             directionsService = new google.maps.DirectionsService();
             geocoder = new google.maps.Geocoder();
             distanceMatrixService = new google.maps.DistanceMatrixService();
         }
 
-        // Geocodificación con restricción geográfica
-        const geocodePoint = (address, isMx) => {
+        const geocodeStrict = (address, isMx) => {
             return new Promise((resolve, reject) => {
-                const options = { address: isMx ? address + ", México" : address };
+                const options = { address: address };
                 if (isMx) options.componentRestrictions = { country: 'MX' };
                 geocoder.geocode(options, (results, status) => {
                     if (status === 'OK') resolve({ name: address, location: results[0].geometry.location });
@@ -226,16 +223,16 @@
         };
 
         async function startProcess() {
-            if (!mapsLoaded) return showError("Debe ingresar la API Key de Google Maps.");
+            if (!mapsLoaded) return showError("Por favor, ingrese una API Key válida primero.");
             const input = document.getElementById('locations-input').value.trim();
             let rawPoints = input.split('\n').map(p => p.trim()).filter(p => p.length > 0);
-            if (rawPoints.length < 2) return showError("Escriba al menos el Punto Origen y el Punto Destino.");
+            if (rawPoints.length < 2) return showError("Se requieren al menos Origen y Destino.");
 
             hideError();
             const btn = document.getElementById('btn-calculate');
             const optimize = document.getElementById('optimize-toggle').checked;
             btn.disabled = true;
-            btn.innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i> Validando Puntos...`;
+            btn.innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i> Procesando...`;
             lucide.createIcons();
 
             polylines.forEach(p => p.setMap(null));
@@ -246,12 +243,11 @@
             try {
                 let geoPoints = [];
                 for(let p of rawPoints) {
-                    const res = await geocodePoint(p, currentMode === 'mx');
+                    const res = await geocodeStrict(p, currentMode === 'mx');
                     geoPoints.push(res);
                 }
 
                 if (optimize && geoPoints.length > 2) {
-                    btn.innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i> Optimizando...`;
                     geoPoints = await optimizeRoute(geoPoints, currentMode === 'mx');
                 }
 
@@ -263,13 +259,9 @@
                 let totalMeters = 0, totalSeconds = 0;
                 const bounds = new google.maps.LatLngBounds();
 
-                // CÁLCULO INDEPENDIENTE TRAMO POR TRAMO
                 for (let i = 0; i < geoPoints.length - 1; i++) {
                     const origin = geoPoints[i].location;
                     const dest = geoPoints[i+1].location;
-
-                    btn.innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i> Tramo ${i+1}/${geoPoints.length-1}...`;
-                    if (i > 0) await new Promise(r => setTimeout(r, 500));
 
                     const request = {
                         origin: origin,
@@ -290,18 +282,26 @@
                     const leg = response.routes[0].legs[0];
                     const path = response.routes[0].overview_path;
 
-                    // ESCÁNER DE COORDENADAS (Detector de cruce a EUA)
-                    // La frontera norte de México nunca supera los 32.72° de Latitud.
-                    let isUsRoute = false;
-                    if (currentMode === 'mx') {
-                        isUsRoute = path.some(coord => coord.lat() > 32.72);
-                    }
+                    // FILTRO DRÁSTICO DE LATITUD (Muro Digital)
+                    // En la frontera norte, nada arriba de 32.7°N es México.
+                    // Para Texas/Chihuahua/Coahuila, el límite es ~29.7°N - 31.8°N.
+                    const isUsRoute = path.some(coord => {
+                        const lat = coord.lat();
+                        const lng = coord.lng();
+                        // Límite frontera Tijuana/Mexicali
+                        if (lat > 32.71) return true;
+                        // Límite frontera Juárez/Ojinaga
+                        if (lng > -106.5 && lat > 31.8) return true;
+                        // Límite frontera Laredo/Reynosa/Matamoros
+                        if (lng > -100 && lat > 29.8) return true;
+                        return false;
+                    });
 
                     const rowData = { 
                         desde: geoPoints[i].name, 
                         hasta: geoPoints[i+1].name,
-                        distancia: isUsRoute ? "BLOQUEADO" : leg.distance.text,
-                        duracion: isUsRoute ? "CRUCE DETECTADO" : leg.duration.text,
+                        distancia: isUsRoute ? "RUTA BLOQUEADA" : leg.distance.text,
+                        duracion: isUsRoute ? "ENTRÓ A EUA" : leg.duration.text,
                         meters: isUsRoute ? 0 : leg.distance.value,
                         seconds: isUsRoute ? 0 : leg.duration.value,
                         violation: isUsRoute
@@ -315,7 +315,7 @@
                         path: path,
                         strokeColor: isUsRoute ? "#ef4444" : (currentMode === 'mx' ? "#4f46e5" : "#10b981"),
                         strokeWeight: 6,
-                        strokeOpacity: 0.85,
+                        strokeOpacity: 0.8,
                         map: map
                     });
                     polylines.push(poly);
@@ -323,8 +323,8 @@
                     
                     addTableRow(rowData, i + 1);
 
-                    if (isUsRoute) {
-                        showError("Google no ofreció ninguna ruta por México para el tramo: " + rowData.desde + " a " + rowData.hasta + ". DEBE insertar un punto intermedio (ej. Hermosillo, Chihuahua) para obligar al GPS a quedarse en el país.");
+                    if (isUsRoute && currentMode === 'mx') {
+                        showError(`¡ALERTA DE SEGURIDAD! El tramo de ${rowData.desde} a ${rowData.hasta} intentó cruzar a EUA. Por razones de seguridad para sus choferes, este tramo ha sido invalidado. DEBE agregar un punto intermedio en México (ej. Hermosillo o Chihuahua) para forzar la ruta nacional.`);
                     }
                 }
 
@@ -342,28 +342,25 @@
                 document.getElementById('total-time').innerText = Math.round(totalSeconds / 60) + " min";
 
             } catch (err) {
-                showError("No se pudo conectar una ruta nacional continua. Revise si las ubicaciones están dentro del territorio nacional.");
+                showError("No se encontró una conexión terrestre válida. Asegúrese de que los nombres de las ciudades sean correctos.");
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i> Calcular Reporte`;
+                btn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i> Generar Reporte Seguro`;
                 lucide.createIcons();
             }
         }
 
         async function optimizeRoute(points, isMx) {
             const locations = points.map(p => p.location);
-            const matrixRequest = {
-                origins: locations,
-                destinations: locations,
-                travelMode: 'DRIVING',
-                region: 'mx'
-            };
-            if (isMx) {
-                matrixRequest.avoidHighways = true;
-                matrixRequest.avoidTolls = true;
-            }
             const matrix = await new Promise((resolve) => {
-                distanceMatrixService.getDistanceMatrix(matrixRequest, (res) => resolve(res));
+                distanceMatrixService.getDistanceMatrix({
+                    origins: locations,
+                    destinations: locations,
+                    travelMode: 'DRIVING',
+                    region: 'mx',
+                    avoidHighways: isMx,
+                    avoidTolls: isMx
+                }, (res) => resolve(res));
             });
             const optimized = [points[0]];
             const unvisited = Array.from({length: points.length - 1}, (_, i) => i + 1);
@@ -384,7 +381,7 @@
         function addTableRow(item, index) {
             const body = document.getElementById('results-body');
             const row = document.createElement('tr');
-            row.className = item.violation ? "bg-red-50 text-red-700" : "hover:bg-slate-50 transition-colors";
+            row.className = item.violation ? "violation-row font-bold text-red-700" : "hover:bg-slate-50 transition-colors";
             row.innerHTML = `
                 <td class="px-8 py-6 text-center font-black italic text-slate-200 text-lg">${index}</td>
                 <td class="px-8 py-6">
@@ -393,7 +390,7 @@
                 </td>
                 <td class="px-8 py-6 text-center font-black">${item.distancia}</td>
                 <td class="px-8 py-6 text-center">
-                    ${item.violation ? `<span class="bg-red-600 text-white px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-tighter">Prohibido EUA</span>` : 
+                    ${item.violation ? `<span class="bg-red-600 text-white px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-tighter">Acceso Denegado</span>` : 
                     `<span class="bg-indigo-50 text-indigo-700 px-4 py-1.5 rounded-full text-[10px] font-black border border-indigo-100 italic">${item.duracion}</span>`}
                 </td>
             `;
@@ -404,7 +401,7 @@
             const content = "\uFEFF" + ['Tramo,Origen,Destino,Distancia,Tiempo'].concat(resultsData.map((r, i) => `${i+1},"${r.desde}","${r.hasta}","${r.distancia}","${r.duracion}"`)).join("\n");
             const a = document.createElement("a");
             a.href = URL.createObjectURL(new Blob([content], { type: 'text/csv;charset=utf-8;' }));
-            a.download = `Reporte_RutasPerfiles_${currentMode.toUpperCase()}.csv`;
+            a.download = `RutasPerfiles_${currentMode.toUpperCase()}_Reporte.csv`;
             a.click();
         }
 
@@ -416,4 +413,5 @@
     </script>
 </body>
 </html>
+
 
