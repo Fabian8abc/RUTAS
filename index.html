@@ -427,7 +427,7 @@
             body.appendChild(row);
         }
 
-        // GENERACIÓN DE PDF PROFESIONAL
+        // GENERACIÓN DE PDF PROFESIONAL SIN PREFIJO PRO
         async function exportInstructionsPDF() {
             if (resultsData.length === 0) return;
             const { jsPDF } = window.jspdf;
@@ -440,7 +440,7 @@
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(22);
             doc.setFont("helvetica", "bold");
-            doc.text("RUTAS PERFILES PRO", 15, 20);
+            doc.text("RUTAS PERFILES", 15, 20);
             
             doc.setFontSize(10);
             doc.setFont("helvetica", "normal");
@@ -454,10 +454,8 @@
             y += 10;
             
             resultsData.forEach((tramo, idx) => {
-                // Verificar si necesitamos nueva página
                 if (y > 250) { doc.addPage(); y = 20; }
                 
-                // Caja de tramo
                 doc.setDrawColor(200, 200, 200);
                 doc.line(15, y, 195, y);
                 y += 10;
@@ -482,7 +480,6 @@
                         const cleanStep = step.instructions.replace(/<[^>]*>?/gm, '');
                         doc.text(`${sIdx + 1}. ${cleanStep} (${step.distance.text})`, 20, y, { maxWidth: 170 });
                         
-                        // Calcular espacio dinámico según longitud de texto
                         const lines = doc.splitTextToSize(cleanStep, 170);
                         y += (lines.length * 4) + 2;
                     });
