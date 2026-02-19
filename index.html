@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rutas Perfiles - Muro Geográfico Estricto</title>
+    <title>Rutas Perfiles - Logística Avanzada</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Iconos Lucide -->
@@ -44,7 +44,7 @@
                 <input 
                     type="password" 
                     id="api-key-input" 
-                    placeholder="Ingrese su API Key de Google..." 
+                    placeholder="API Key de Google Maps..." 
                     class="text-xs outline-none w-48 md:w-64 bg-transparent font-mono"
                 >
             </div>
@@ -64,28 +64,34 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            <!-- Columna Izquierda: Entrada -->
+            <!-- Columna Izquierda -->
             <div class="lg:col-span-4 space-y-4">
                 <div class="bg-white rounded-[2rem] shadow-sm border border-slate-200 p-6 md:p-8">
                     <div class="mb-4">
                         <h2 class="font-bold text-slate-800 flex items-center gap-3">
                             <i data-lucide="map-pin" class="text-indigo-500 w-5 h-5"></i>
-                            Puntos de Ruta
+                            Configuración de Ruta
                         </h2>
-                        <p id="mode-text" class="text-[10px] text-red-600 font-black uppercase mt-1">Restricción Total: Prohibido cruzar la frontera</p>
+                        <p id="mode-text" class="text-[10px] text-red-600 font-black uppercase mt-1">Restricción Total: Prohibido EUA</p>
                     </div>
 
                     <textarea 
                         id="locations-input"
-                        placeholder="Ejemplo:&#10;Monterrey, NL&#10;Chihuahua, CH&#10;Tijuana, BC"
+                        placeholder="Origen (Punto 1)&#10;Destino A&#10;Destino B..."
                         class="w-full h-64 p-5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 outline-none text-sm resize-none font-mono transition-all custom-scrollbar"
                     ></textarea>
 
-                    <div class="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-3 shadow-inner">
-                        <input type="checkbox" id="optimize-toggle" class="w-5 h-5 rounded border-slate-300 text-indigo-600 cursor-pointer">
-                        <label for="optimize-toggle" class="text-[11px] font-bold text-slate-700 leading-tight cursor-pointer">
-                            Optimizar orden (Mantener inicio fijo)
-                        </label>
+                    <div class="mt-4 space-y-2">
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3 shadow-inner">
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" id="optimize-toggle" class="w-5 h-5 rounded border-slate-300 text-indigo-600 cursor-pointer">
+                                <span class="text-[11px] font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">Optimizar orden de paradas</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" id="return-toggle" class="w-5 h-5 rounded border-slate-300 text-indigo-600 cursor-pointer">
+                                <span class="text-[11px] font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">Incluir retorno al punto inicial (#1)</span>
+                            </label>
+                        </div>
                     </div>
 
                     <button 
@@ -94,7 +100,7 @@
                         class="w-full mt-6 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all bg-indigo-600 text-white hover:bg-indigo-700 shadow-xl shadow-indigo-200 active:scale-95 disabled:opacity-50"
                     >
                         <i data-lucide="play" class="w-4 h-4 fill-current"></i>
-                        Generar Reporte Seguro
+                        Generar Reporte Optimizado
                     </button>
                 </div>
 
@@ -103,23 +109,23 @@
                         <i data-lucide="shield-off" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <p class="text-[10px] text-red-800 font-black uppercase tracking-widest">Alerta Fronteriza</p>
+                        <p class="text-[10px] text-red-800 font-black uppercase tracking-widest">Aviso de Trayecto</p>
                         <p id="error-text" class="text-xs text-red-700 leading-relaxed font-bold mt-1"></p>
                     </div>
                 </div>
             </div>
 
-            <!-- Columna Derecha: Mapa y Datos -->
+            <!-- Columna Derecha -->
             <div class="lg:col-span-8 space-y-6">
                 <!-- Mapa -->
                 <div id="map-container" class="hidden">
                     <div class="bg-slate-900 text-white p-4 rounded-t-[1.5rem] flex justify-between items-center border-b border-slate-700">
                         <div class="flex items-center gap-3">
                             <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
-                            <span id="map-header-text" class="text-[10px] font-black uppercase tracking-widest">Mapa con Restricción MX</span>
+                            <span id="map-header-text" class="text-[10px] font-black uppercase tracking-widest">Mapa de Operación Nacional</span>
                         </div>
                         <button onclick="exportToCSV()" class="text-[10px] bg-emerald-600 px-4 py-2 rounded-xl font-bold hover:bg-emerald-500 flex items-center gap-2 transition-all shadow-lg">
-                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Exportar a Excel
+                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Exportar Excel
                         </button>
                     </div>
                     <div id="map"></div>
@@ -131,9 +137,9 @@
                         <thead>
                             <tr class="bg-slate-50 text-slate-400 text-[9px] uppercase tracking-widest font-black border-b border-slate-100">
                                 <th class="px-8 py-5 text-center">Tramo</th>
-                                <th class="px-8 py-5">Recorrido</th>
+                                <th class="px-8 py-5">Trayecto</th>
                                 <th class="px-8 py-5 text-center">Distancia</th>
-                                <th class="px-8 py-5 text-center">Tiempo</th>
+                                <th class="px-8 py-5 text-center">Tiempo Est.</th>
                             </tr>
                         </thead>
                         <tbody id="results-body" class="divide-y divide-slate-100 text-sm font-medium"></tbody>
@@ -149,7 +155,7 @@
 
                 <div id="empty-state" class="flex flex-col items-center justify-center h-full text-slate-300 py-48 bg-white rounded-[2rem] border border-dashed border-slate-200">
                     <i data-lucide="map-pinned" class="w-20 h-20 opacity-10 mb-4"></i>
-                    <p class="text-sm font-bold uppercase tracking-widest">Ingrese los destinos para calcular la ruta nacional</p>
+                    <p class="text-sm font-bold uppercase tracking-widest text-center">Ingrese el listado de destinos<br><span class="text-[10px] opacity-50 font-medium">Active la casilla de retorno si desea volver al punto #1</span></p>
                 </div>
             </div>
         </div>
@@ -202,8 +208,7 @@
                 zoom: 5,
                 center: { lat: 23.6345, lng: -102.5528 },
                 styles: [
-                    { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] },
-                    { featureType: "administrative.country", elementType: "geometry.stroke", stylers: [{ color: "#4f46e5" }, { weight: 2 }] }
+                    { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] }
                 ]
             });
             directionsService = new google.maps.DirectionsService();
@@ -226,11 +231,12 @@
             if (!mapsLoaded) return showError("Por favor, ingrese una API Key válida primero.");
             const input = document.getElementById('locations-input').value.trim();
             let rawPoints = input.split('\n').map(p => p.trim()).filter(p => p.length > 0);
-            if (rawPoints.length < 2) return showError("Se requieren al menos Origen y Destino.");
+            if (rawPoints.length < 2) return showError("Se requieren al menos 2 puntos.");
 
             hideError();
             const btn = document.getElementById('btn-calculate');
             const optimize = document.getElementById('optimize-toggle').checked;
+            const includeReturn = document.getElementById('return-toggle').checked;
             btn.disabled = true;
             btn.innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i> Procesando...`;
             lucide.createIcons();
@@ -241,14 +247,24 @@
             document.getElementById('results-body').innerHTML = "";
 
             try {
+                // Geocodificación
                 let geoPoints = [];
                 for(let p of rawPoints) {
                     const res = await geocodeStrict(p, currentMode === 'mx');
                     geoPoints.push(res);
                 }
 
+                // Optimización
                 if (optimize && geoPoints.length > 2) {
                     geoPoints = await optimizeRoute(geoPoints, currentMode === 'mx');
+                }
+
+                // Añadir Retorno si aplica
+                if (includeReturn) {
+                    geoPoints.push({
+                        ...geoPoints[0],
+                        name: geoPoints[0].name + " (Regreso)"
+                    });
                 }
 
                 document.getElementById('empty-state').classList.add('hidden');
@@ -282,17 +298,12 @@
                     const leg = response.routes[0].legs[0];
                     const path = response.routes[0].overview_path;
 
-                    // FILTRO DRÁSTICO DE LATITUD (Muro Digital)
-                    // En la frontera norte, nada arriba de 32.7°N es México.
-                    // Para Texas/Chihuahua/Coahuila, el límite es ~29.7°N - 31.8°N.
+                    // Muro Digital
                     const isUsRoute = path.some(coord => {
                         const lat = coord.lat();
                         const lng = coord.lng();
-                        // Límite frontera Tijuana/Mexicali
                         if (lat > 32.71) return true;
-                        // Límite frontera Juárez/Ojinaga
                         if (lng > -106.5 && lat > 31.8) return true;
-                        // Límite frontera Laredo/Reynosa/Matamoros
                         if (lng > -100 && lat > 29.8) return true;
                         return false;
                     });
@@ -300,11 +311,11 @@
                     const rowData = { 
                         desde: geoPoints[i].name, 
                         hasta: geoPoints[i+1].name,
-                        distancia: isUsRoute ? "RUTA BLOQUEADA" : leg.distance.text,
-                        duracion: isUsRoute ? "ENTRÓ A EUA" : leg.duration.text,
-                        meters: isUsRoute ? 0 : leg.distance.value,
-                        seconds: isUsRoute ? 0 : leg.duration.value,
-                        violation: isUsRoute
+                        distancia: isUsRoute && currentMode === 'mx' ? "BLOQUEADO" : leg.distance.text,
+                        duracion: isUsRoute && currentMode === 'mx' ? "ENTRÓ A EUA" : leg.duration.text,
+                        meters: isUsRoute && currentMode === 'mx' ? 0 : leg.distance.value,
+                        seconds: isUsRoute && currentMode === 'mx' ? 0 : leg.duration.value,
+                        violation: isUsRoute && currentMode === 'mx'
                     };
 
                     resultsData.push(rowData);
@@ -313,7 +324,7 @@
 
                     const poly = new google.maps.Polyline({
                         path: path,
-                        strokeColor: isUsRoute ? "#ef4444" : (currentMode === 'mx' ? "#4f46e5" : "#10b981"),
+                        strokeColor: rowData.violation ? "#ef4444" : (currentMode === 'mx' ? "#4f46e5" : "#10b981"),
                         strokeWeight: 6,
                         strokeOpacity: 0.8,
                         map: map
@@ -323,29 +334,31 @@
                     
                     addTableRow(rowData, i + 1);
 
-                    if (isUsRoute && currentMode === 'mx') {
-                        showError(`¡ALERTA DE SEGURIDAD! El tramo de ${rowData.desde} a ${rowData.hasta} intentó cruzar a EUA. Por razones de seguridad para sus choferes, este tramo ha sido invalidado. DEBE agregar un punto intermedio en México (ej. Hermosillo o Chihuahua) para forzar la ruta nacional.`);
+                    if (rowData.violation) {
+                        showError(`¡ALERTA! El tramo de retorno o destino intentó cruzar la frontera. DEBE añadir un punto nacional (ej. Hermosillo, Chihuahua) para forzar el paso en México.`);
                     }
                 }
 
-                geoPoints.forEach((p, idx) => {
+                // Dibujar marcadores (sin duplicar el visual del retorno)
+                const markerLimit = includeReturn ? geoPoints.length - 1 : geoPoints.length;
+                for(let idx = 0; idx < markerLimit; idx++) {
                     const marker = new google.maps.Marker({
-                        position: p.location,
+                        position: geoPoints[idx].location,
                         map: map,
                         label: { text: (idx + 1).toString(), color: 'white', fontWeight: 'bold' }
                     });
                     markers.push(marker);
-                });
+                }
 
                 map.fitBounds(bounds);
                 document.getElementById('total-km').innerText = (totalMeters / 1000).toFixed(1) + " km";
                 document.getElementById('total-time').innerText = Math.round(totalSeconds / 60) + " min";
 
             } catch (err) {
-                showError("No se encontró una conexión terrestre válida. Asegúrese de que los nombres de las ciudades sean correctos.");
+                showError("No se pudo hallar una ruta válida. Verifique si sus paradas están dentro de México.");
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i> Generar Reporte Seguro`;
+                btn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i> Generar Reporte Optimizado`;
                 lucide.createIcons();
             }
         }
@@ -390,7 +403,7 @@
                 </td>
                 <td class="px-8 py-6 text-center font-black">${item.distancia}</td>
                 <td class="px-8 py-6 text-center">
-                    ${item.violation ? `<span class="bg-red-600 text-white px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-tighter">Acceso Denegado</span>` : 
+                    ${item.violation ? `<span class="bg-red-600 text-white px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-tighter">Prohibido EUA</span>` : 
                     `<span class="bg-indigo-50 text-indigo-700 px-4 py-1.5 rounded-full text-[10px] font-black border border-indigo-100 italic">${item.duracion}</span>`}
                 </td>
             `;
@@ -413,5 +426,4 @@
     </script>
 </body>
 </html>
-
 
