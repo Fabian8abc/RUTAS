@@ -15,7 +15,7 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         #map { height: 550px; width: 100%; border-radius: 0 0 1.5rem 1.5rem; border: 1px solid #e2e8f0; }
-        .tab-active { border-bottom: 4px solid #4f46e5; color: #4f46e5; font-weight: 800; }
+        .tab-active { border-bottom: 4px solid #f59e0b; color: #f59e0b; font-weight: 800; }
         .tab-inactive { color: #94a3b8; font-weight: 600; border-bottom: 4px solid transparent; }
         .violation-row { background-color: #fef2f2; }
     </style>
@@ -39,7 +39,7 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all">
+            <div class="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 shadow-sm focus-within:ring-2 focus-within:ring-orange-500/20 transition-all">
                 <i data-lucide="key" class="w-3.5 h-3.5 text-slate-400"></i>
                 <input 
                     type="password" 
@@ -69,7 +69,7 @@
                 <div class="bg-white rounded-[2rem] shadow-sm border border-slate-200 p-6 md:p-8">
                     <div class="mb-4">
                         <h2 class="font-bold text-slate-800 flex items-center gap-3">
-                            <i data-lucide="map-pin" class="text-indigo-500 w-5 h-5"></i>
+                            <i data-lucide="map-pin" class="text-orange-500 w-5 h-5"></i>
                             Configuración de Ruta
                         </h2>
                         <p id="mode-text" class="text-[10px] text-red-600 font-black uppercase mt-1">Restricción Total: Prohibido EUA</p>
@@ -78,18 +78,18 @@
                     <textarea 
                         id="locations-input"
                         placeholder="Origen (Punto 1)&#10;Destino A&#10;Destino B..."
-                        class="w-full h-64 p-5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 outline-none text-sm resize-none font-mono transition-all custom-scrollbar"
+                        class="w-full h-64 p-5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-orange-500/10 focus:border-orange-400 outline-none text-sm resize-none font-mono transition-all custom-scrollbar"
                     ></textarea>
 
                     <div class="mt-4 space-y-2">
                         <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3 shadow-inner">
                             <label class="flex items-center gap-3 cursor-pointer group">
-                                <input type="checkbox" id="optimize-toggle" class="w-5 h-5 rounded border-slate-300 text-indigo-600 cursor-pointer">
-                                <span class="text-[11px] font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">Optimizar orden de paradas</span>
+                                <input type="checkbox" id="optimize-toggle" class="w-5 h-5 rounded border-slate-300 text-orange-600 cursor-pointer">
+                                <span class="text-[11px] font-bold text-slate-700 group-hover:text-orange-600 transition-colors">Optimizar orden de paradas</span>
                             </label>
                             <label class="flex items-center gap-3 cursor-pointer group">
-                                <input type="checkbox" id="return-toggle" class="w-5 h-5 rounded border-slate-300 text-indigo-600 cursor-pointer">
-                                <span class="text-[11px] font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">Incluir retorno al punto inicial (#1)</span>
+                                <input type="checkbox" id="return-toggle" class="w-5 h-5 rounded border-slate-300 text-orange-600 cursor-pointer">
+                                <span class="text-[11px] font-bold text-slate-700 group-hover:text-orange-600 transition-colors">Incluir retorno al punto inicial (#1)</span>
                             </label>
                         </div>
                     </div>
@@ -97,7 +97,7 @@
                     <button 
                         id="btn-calculate"
                         onclick="startProcess()"
-                        class="w-full mt-6 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all bg-indigo-600 text-white hover:bg-indigo-700 shadow-xl shadow-indigo-200 active:scale-95 disabled:opacity-50"
+                        class="w-full mt-6 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all bg-orange-600 text-white hover:bg-orange-700 shadow-xl shadow-indigo-200 active:scale-95 disabled:opacity-50"
                     >
                         <i data-lucide="play" class="w-4 h-4 fill-current"></i>
                         Generar Reporte Optimizado
@@ -121,12 +121,18 @@
                 <div id="map-container" class="hidden">
                     <div class="bg-slate-900 text-white p-4 rounded-t-[1.5rem] flex justify-between items-center border-b border-slate-700">
                         <div class="flex items-center gap-3">
-                            <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
+                            <div class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
                             <span id="map-header-text" class="text-[10px] font-black uppercase tracking-widest">Mapa de Operación Nacional</span>
                         </div>
-                        <button onclick="exportToCSV()" class="text-[10px] bg-emerald-600 px-4 py-2 rounded-xl font-bold hover:bg-emerald-500 flex items-center gap-2 transition-all shadow-lg">
-                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Exportar Excel
-                        </button>
+                        <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-4 text-[9px] font-bold uppercase tracking-tighter opacity-70 border-r border-slate-700 pr-4">
+                                <div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-orange-500"></div> Ruta</div>
+                                <div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-blue-500"></div> Retorno</div>
+                            </div>
+                            <button onclick="exportToCSV()" class="text-[10px] bg-emerald-600 px-4 py-2 rounded-xl font-bold hover:bg-emerald-500 flex items-center gap-2 transition-all shadow-lg">
+                                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Exportar Excel
+                            </button>
+                        </div>
                     </div>
                     <div id="map"></div>
                 </div>
@@ -207,9 +213,7 @@
             map = new google.maps.Map(document.getElementById("map"), {
                 zoom: 5,
                 center: { lat: 23.6345, lng: -102.5528 },
-                styles: [
-                    { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] }
-                ]
+                styles: [{ featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] }]
             });
             directionsService = new google.maps.DirectionsService();
             geocoder = new google.maps.Geocoder();
@@ -218,7 +222,7 @@
 
         const geocodeStrict = (address, isMx) => {
             return new Promise((resolve, reject) => {
-                const options = { address: address };
+                const options = { address: isMx ? address + ", México" : address };
                 if (isMx) options.componentRestrictions = { country: 'MX' };
                 geocoder.geocode(options, (results, status) => {
                     if (status === 'OK') resolve({ name: address, location: results[0].geometry.location });
@@ -247,19 +251,16 @@
             document.getElementById('results-body').innerHTML = "";
 
             try {
-                // Geocodificación
                 let geoPoints = [];
                 for(let p of rawPoints) {
                     const res = await geocodeStrict(p, currentMode === 'mx');
                     geoPoints.push(res);
                 }
 
-                // Optimización
                 if (optimize && geoPoints.length > 2) {
                     geoPoints = await optimizeRoute(geoPoints, currentMode === 'mx');
                 }
 
-                // Añadir Retorno si aplica
                 if (includeReturn) {
                     geoPoints.push({
                         ...geoPoints[0],
@@ -298,7 +299,6 @@
                     const leg = response.routes[0].legs[0];
                     const path = response.routes[0].overview_path;
 
-                    // Muro Digital
                     const isUsRoute = path.some(coord => {
                         const lat = coord.lat();
                         const lng = coord.lng();
@@ -308,6 +308,8 @@
                         return false;
                     });
 
+                    const isReturnTramo = includeReturn && (i === geoPoints.length - 2);
+
                     const rowData = { 
                         desde: geoPoints[i].name, 
                         hasta: geoPoints[i+1].name,
@@ -315,16 +317,21 @@
                         duracion: isUsRoute && currentMode === 'mx' ? "ENTRÓ A EUA" : leg.duration.text,
                         meters: isUsRoute && currentMode === 'mx' ? 0 : leg.distance.value,
                         seconds: isUsRoute && currentMode === 'mx' ? 0 : leg.duration.value,
-                        violation: isUsRoute && currentMode === 'mx'
+                        violation: isUsRoute && currentMode === 'mx',
+                        isReturn: isReturnTramo
                     };
 
                     resultsData.push(rowData);
                     totalMeters += rowData.meters;
                     totalSeconds += rowData.seconds;
 
+                    let strokeColor = currentMode === 'mx' ? "#f59e0b" : "#10b981"; // Naranja para MX, Verde para Global
+                    if (rowData.violation) strokeColor = "#ef4444"; // Rojo para violación
+                    else if (isReturnTramo) strokeColor = "#3b82f6"; // AZUL PARA RETORNO
+
                     const poly = new google.maps.Polyline({
                         path: path,
-                        strokeColor: rowData.violation ? "#ef4444" : (currentMode === 'mx' ? "#4f46e5" : "#10b981"),
+                        strokeColor: strokeColor,
                         strokeWeight: 6,
                         strokeOpacity: 0.8,
                         map: map
@@ -339,7 +346,6 @@
                     }
                 }
 
-                // Dibujar marcadores (sin duplicar el visual del retorno)
                 const markerLimit = includeReturn ? geoPoints.length - 1 : geoPoints.length;
                 for(let idx = 0; idx < markerLimit; idx++) {
                     const marker = new google.maps.Marker({
@@ -395,6 +401,13 @@
             const body = document.getElementById('results-body');
             const row = document.createElement('tr');
             row.className = item.violation ? "violation-row font-bold text-red-700" : "hover:bg-slate-50 transition-colors";
+            
+            // Color de tiempo según si es retorno o normal
+            const timeColorClass = item.violation ? "bg-red-600" : (item.isReturn ? "bg-blue-600" : (currentMode === 'mx' ? "bg-orange-500" : "bg-emerald-500"));
+            const timeBgClass = item.violation ? "bg-red-600" : (item.isReturn ? "bg-blue-50" : (currentMode === 'mx' ? "bg-orange-50" : "bg-emerald-50"));
+            const timeTextClass = item.violation ? "text-white" : (item.isReturn ? "text-blue-700" : (currentMode === 'mx' ? "text-orange-700" : "text-emerald-700"));
+            const timeBorderClass = item.violation ? "" : (item.isReturn ? "border-blue-100" : (currentMode === 'mx' ? "border-orange-100" : "border-emerald-100"));
+
             row.innerHTML = `
                 <td class="px-8 py-6 text-center font-black italic text-slate-200 text-lg">${index}</td>
                 <td class="px-8 py-6">
@@ -404,7 +417,7 @@
                 <td class="px-8 py-6 text-center font-black">${item.distancia}</td>
                 <td class="px-8 py-6 text-center">
                     ${item.violation ? `<span class="bg-red-600 text-white px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-tighter">Prohibido EUA</span>` : 
-                    `<span class="bg-indigo-50 text-indigo-700 px-4 py-1.5 rounded-full text-[10px] font-black border border-indigo-100 italic">${item.duracion}</span>`}
+                    `<span class="${timeBgClass} ${timeTextClass} px-4 py-1.5 rounded-full text-[10px] font-black border ${timeBorderClass} italic">${item.duracion}</span>`}
                 </td>
             `;
             body.appendChild(row);
@@ -426,4 +439,3 @@
     </script>
 </body>
 </html>
-
