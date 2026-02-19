@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rutas Perfiles - Logística Avanzada</title>
+    <title>Rutas Perfiles - Logística y Hojas de Ruta</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Iconos Lucide -->
@@ -44,19 +44,19 @@
                 <input 
                     type="password" 
                     id="api-key-input" 
-                    placeholder="API Key de Google Maps..." 
+                    placeholder="Ingrese su API Key de Google Maps..." 
                     class="text-xs outline-none w-48 md:w-64 bg-transparent font-mono"
                 >
             </div>
         </header>
 
         <!-- Tabs de Operación -->
-        <div class="flex gap-8 mb-6 bg-white px-6 rounded-2xl shadow-sm border border-slate-100">
-            <button id="tab-mx" onclick="switchTab('mx')" class="tab-active py-5 px-2 flex items-center gap-2 transition-all">
+        <div class="flex gap-8 mb-6 bg-white px-6 rounded-2xl shadow-sm border border-slate-100 overflow-x-auto">
+            <button id="tab-mx" onclick="switchTab('mx')" class="tab-active py-5 px-2 flex items-center gap-2 transition-all whitespace-nowrap">
                 <i data-lucide="shield-check" class="w-4 h-4"></i>
                 Solo Caminos de México
             </button>
-            <button id="tab-global" onclick="switchTab('global')" class="tab-inactive py-5 px-2 flex items-center gap-2 transition-all">
+            <button id="tab-global" onclick="switchTab('global')" class="tab-inactive py-5 px-2 flex items-center gap-2 transition-all whitespace-nowrap">
                 <i data-lucide="globe" class="w-4 h-4"></i>
                 Ruta Internacional (EUA)
             </button>
@@ -78,7 +78,7 @@
                     <textarea 
                         id="locations-input"
                         placeholder="Origen (Punto 1)&#10;Destino A&#10;Destino B..."
-                        class="w-full h-64 p-5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-orange-500/10 focus:border-orange-400 outline-none text-sm resize-none font-mono transition-all custom-scrollbar"
+                        class="w-full h-64 p-5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 outline-none text-sm resize-none font-mono transition-all custom-scrollbar"
                     ></textarea>
 
                     <div class="mt-4 space-y-2">
@@ -97,15 +97,15 @@
                     <button 
                         id="btn-calculate"
                         onclick="startProcess()"
-                        class="w-full mt-6 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all bg-orange-600 text-white hover:bg-orange-700 shadow-xl shadow-indigo-200 active:scale-95 disabled:opacity-50"
+                        class="w-full mt-6 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all bg-indigo-600 text-white hover:bg-indigo-700 shadow-xl shadow-indigo-200 active:scale-95 disabled:opacity-50"
                     >
                         <i data-lucide="play" class="w-4 h-4 fill-current"></i>
-                        Generar Reporte Optimizado
+                        Generar Reporte Completo
                     </button>
                 </div>
 
                 <div id="error-box" class="hidden bg-red-50 border-2 border-red-200 p-5 rounded-[2rem] flex items-start gap-4 shadow-md">
-                    <div class="bg-red-500 p-2 rounded-lg text-white shadow-lg">
+                    <div class="bg-red-500 p-2 rounded-lg text-white shadow-lg shrink-0">
                         <i data-lucide="shield-off" class="w-5 h-5"></i>
                     </div>
                     <div>
@@ -117,27 +117,30 @@
 
             <!-- Columna Derecha -->
             <div class="lg:col-span-8 space-y-6">
-                <!-- Mapa -->
+                <!-- Mapa y Botones de Exportación -->
                 <div id="map-container" class="hidden">
-                    <div class="bg-slate-900 text-white p-4 rounded-t-[1.5rem] flex justify-between items-center border-b border-slate-700">
+                    <div class="bg-slate-900 text-white p-4 rounded-t-[1.5rem] flex flex-col md:flex-row justify-between items-center gap-4 border-b border-slate-700">
                         <div class="flex items-center gap-3">
                             <div class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
                             <span id="map-header-text" class="text-[10px] font-black uppercase tracking-widest">Mapa de Operación Nacional</span>
                         </div>
-                        <div class="flex items-center gap-4">
-                            <div class="flex items-center gap-4 text-[9px] font-bold uppercase tracking-tighter opacity-70 border-r border-slate-700 pr-4">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <div class="hidden md:flex items-center gap-4 text-[9px] font-bold uppercase tracking-tighter opacity-70 border-r border-slate-700 pr-4 mr-1">
                                 <div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-orange-500"></div> Ruta</div>
                                 <div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-blue-500"></div> Retorno</div>
                             </div>
+                            <button onclick="exportInstructions()" class="text-[10px] bg-slate-700 px-4 py-2 rounded-xl font-bold hover:bg-slate-600 flex items-center gap-2 transition-all border border-slate-600">
+                                <i data-lucide="file-text" class="w-3.5 h-3.5 text-blue-400"></i> Hoja de Ruta (TXT)
+                            </button>
                             <button onclick="exportToCSV()" class="text-[10px] bg-emerald-600 px-4 py-2 rounded-xl font-bold hover:bg-emerald-500 flex items-center gap-2 transition-all shadow-lg">
-                                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Exportar Excel
+                                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-white"></i> Exportar Excel
                             </button>
                         </div>
                     </div>
                     <div id="map"></div>
                 </div>
 
-                <!-- Tabla -->
+                <!-- Tabla de Resultados -->
                 <div id="results-container" class="hidden bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
                     <table class="w-full text-left">
                         <thead>
@@ -161,7 +164,7 @@
 
                 <div id="empty-state" class="flex flex-col items-center justify-center h-full text-slate-300 py-48 bg-white rounded-[2rem] border border-dashed border-slate-200">
                     <i data-lucide="map-pinned" class="w-20 h-20 opacity-10 mb-4"></i>
-                    <p class="text-sm font-bold uppercase tracking-widest text-center">Ingrese el listado de destinos<br><span class="text-[10px] opacity-50 font-medium">Active la casilla de retorno si desea volver al punto #1</span></p>
+                    <p class="text-sm font-bold uppercase tracking-widest text-center">Ingrese el listado de destinos<br><span class="text-[10px] opacity-50 font-medium italic">Se incluirán instrucciones de manejo descargables</span></p>
                 </div>
             </div>
         </div>
@@ -235,7 +238,7 @@
             if (!mapsLoaded) return showError("Por favor, ingrese una API Key válida primero.");
             const input = document.getElementById('locations-input').value.trim();
             let rawPoints = input.split('\n').map(p => p.trim()).filter(p => p.length > 0);
-            if (rawPoints.length < 2) return showError("Se requieren al menos 2 puntos.");
+            if (rawPoints.length < 2) return showError("Se requieren al menos Origen y Destino.");
 
             hideError();
             const btn = document.getElementById('btn-calculate');
@@ -299,6 +302,7 @@
                     const leg = response.routes[0].legs[0];
                     const path = response.routes[0].overview_path;
 
+                    // Muro Digital
                     const isUsRoute = path.some(coord => {
                         const lat = coord.lat();
                         const lng = coord.lng();
@@ -318,16 +322,17 @@
                         meters: isUsRoute && currentMode === 'mx' ? 0 : leg.distance.value,
                         seconds: isUsRoute && currentMode === 'mx' ? 0 : leg.duration.value,
                         violation: isUsRoute && currentMode === 'mx',
-                        isReturn: isReturnTramo
+                        isReturn: isReturnTramo,
+                        steps: isUsRoute && currentMode === 'mx' ? [] : leg.steps // Guardamos pasos para instrucciones
                     };
 
                     resultsData.push(rowData);
                     totalMeters += rowData.meters;
                     totalSeconds += rowData.seconds;
 
-                    let strokeColor = currentMode === 'mx' ? "#f59e0b" : "#10b981"; // Naranja para MX, Verde para Global
-                    if (rowData.violation) strokeColor = "#ef4444"; // Rojo para violación
-                    else if (isReturnTramo) strokeColor = "#3b82f6"; // AZUL PARA RETORNO
+                    let strokeColor = currentMode === 'mx' ? "#f59e0b" : "#10b981"; 
+                    if (rowData.violation) strokeColor = "#ef4444"; 
+                    else if (isReturnTramo) strokeColor = "#3b82f6"; 
 
                     const poly = new google.maps.Polyline({
                         path: path,
@@ -364,7 +369,7 @@
                 showError("No se pudo hallar una ruta válida. Verifique si sus paradas están dentro de México.");
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i> Generar Reporte Optimizado`;
+                btn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i> Generar Reporte Completo`;
                 lucide.createIcons();
             }
         }
@@ -402,8 +407,6 @@
             const row = document.createElement('tr');
             row.className = item.violation ? "violation-row font-bold text-red-700" : "hover:bg-slate-50 transition-colors";
             
-            // Color de tiempo según si es retorno o normal
-            const timeColorClass = item.violation ? "bg-red-600" : (item.isReturn ? "bg-blue-600" : (currentMode === 'mx' ? "bg-orange-500" : "bg-emerald-500"));
             const timeBgClass = item.violation ? "bg-red-600" : (item.isReturn ? "bg-blue-50" : (currentMode === 'mx' ? "bg-orange-50" : "bg-emerald-50"));
             const timeTextClass = item.violation ? "text-white" : (item.isReturn ? "text-blue-700" : (currentMode === 'mx' ? "text-orange-700" : "text-emerald-700"));
             const timeBorderClass = item.violation ? "" : (item.isReturn ? "border-blue-100" : (currentMode === 'mx' ? "border-orange-100" : "border-emerald-100"));
@@ -412,22 +415,60 @@
                 <td class="px-8 py-6 text-center font-black italic text-slate-200 text-lg">${index}</td>
                 <td class="px-8 py-6">
                     <div class="flex flex-col"><span class="text-[9px] text-slate-400 font-bold uppercase truncate max-w-[200px]">${item.desde}</span>
-                    <span class="text-sm font-bold truncate max-w-[200px]">${item.hasta}</span></div>
+                    <span class="text-sm font-bold truncate max-w-[200px] text-slate-700">${item.hasta}</span></div>
                 </td>
-                <td class="px-8 py-6 text-center font-black">${item.distancia}</td>
+                <td class="px-8 py-6 text-center font-black text-slate-900">${item.distancia}</td>
                 <td class="px-8 py-6 text-center">
                     ${item.violation ? `<span class="bg-red-600 text-white px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-tighter">Prohibido EUA</span>` : 
-                    `<span class="${timeBgClass} ${timeTextClass} px-4 py-1.5 rounded-full text-[10px] font-black border ${timeBorderClass} italic">${item.duracion}</span>`}
+                    `<span class="${timeBgClass} ${timeTextClass} px-4 py-1.5 rounded-full text-[10px] font-black border ${timeBorderClass} italic shadow-sm">${item.duracion}</span>`}
                 </td>
             `;
             body.appendChild(row);
+        }
+
+        // Función para exportar instrucciones por escrito (TX)
+        function exportInstructions() {
+            if (resultsData.length === 0) return;
+
+            let text = `HOJA DE RUTA - RUTAS PERFILES\n`;
+            text += `Modo: ${currentMode === 'mx' ? 'SOLO MÉXICO (Restringido)' : 'INTERNACIONAL'}\n`;
+            text += `Fecha: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}\n`;
+            text += `--------------------------------------------------\n\n`;
+
+            resultsData.forEach((tramo, idx) => {
+                text += `TRAMO ${idx + 1}: ${tramo.desde} -> ${tramo.hasta}\n`;
+                text += `Distancia: ${tramo.distancia} | Tiempo est.: ${tramo.duracion}\n`;
+                text += `--------------------------------------------------\n`;
+
+                if (tramo.violation) {
+                    text += `[ERROR] RUTA BLOQUEADA: Intento de cruce a EUA detectado.\n\n`;
+                } else if (tramo.steps && tramo.steps.length > 0) {
+                    tramo.steps.forEach((step, sIdx) => {
+                        // Limpiar etiquetas HTML como <b> o <div> que devuelve la API
+                        const cleanStep = step.instructions.replace(/<[^>]*>?/gm, '');
+                        text += `${sIdx + 1}. ${cleanStep} (${step.distance.text})\n`;
+                    });
+                    text += `\n`;
+                } else {
+                    text += `No hay instrucciones disponibles para este tramo.\n\n`;
+                }
+            });
+
+            text += `FIN DEL RECORRIDO\nGenerado por Rutas Perfiles Pro.`;
+
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `HojaDeRuta_Chofer_${new Date().getTime()}.txt`;
+            link.click();
         }
 
         function exportToCSV() {
             const content = "\uFEFF" + ['Tramo,Origen,Destino,Distancia,Tiempo'].concat(resultsData.map((r, i) => `${i+1},"${r.desde}","${r.hasta}","${r.distancia}","${r.duracion}"`)).join("\n");
             const a = document.createElement("a");
             a.href = URL.createObjectURL(new Blob([content], { type: 'text/csv;charset=utf-8;' }));
-            a.download = `RutasPerfiles_${currentMode.toUpperCase()}_Reporte.csv`;
+            a.download = `Reporte_RutasPerfiles_${new Date().getTime()}.csv`;
             a.click();
         }
 
