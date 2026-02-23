@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rutas Perfiles - SAP S/4HANA Edition</title>
+    <title>Rutas Perfiles - Módulo de Logística</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Iconos Lucide -->
@@ -16,55 +16,54 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
         :root {
-            --sap-shell-color: #1c2d3d;
-            --sap-blue: #0070f2;
-            --sap-bg: #eff4f9;
-            --sap-card-bg: #ffffff;
-            --sap-border: #d9d9d9;
-            --sap-text: #32363a;
+            --shell-color: #1c2d3d;
+            --brand-blue: #0070f2;
+            --main-bg: #eff4f9;
+            --card-bg: #ffffff;
+            --border-color: #d9d9d9;
+            --text-main: #32363a;
         }
 
         body { 
             font-family: 'Inter', sans-serif; 
-            background-color: var(--sap-bg);
-            color: var(--sap-text);
+            background-color: var(--main-bg);
+            color: var(--text-main);
         }
 
-        /* Estilo SAP Fiori */
-        .sap-shell-bar {
-            background-color: var(--sap-shell-color);
+        .shell-bar {
+            background-color: var(--shell-color);
             height: 48px;
         }
 
-        .sap-kpi-card {
-            background: var(--sap-card-bg);
-            border: 1px solid var(--sap-border);
-            border-bottom: 4px solid var(--sap-blue);
+        .kpi-tile {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-bottom: 4px solid var(--brand-blue);
         }
 
-        .sap-tab-active {
-            color: var(--sap-blue);
-            border-bottom: 2px solid var(--sap-blue);
+        .tab-active {
+            color: var(--brand-blue);
+            border-bottom: 2px solid var(--brand-blue);
             font-weight: 600;
         }
 
-        .sap-btn-primary {
-            background-color: var(--sap-blue);
+        .btn-execute {
+            background-color: var(--brand-blue);
             transition: filter 0.2s;
         }
-        .sap-btn-primary:hover {
+        .btn-execute:hover {
             filter: brightness(0.9);
         }
 
-        .sap-table-header {
+        .table-head {
             background-color: #f7f7f7;
-            border-bottom: 2px solid var(--sap-border);
+            border-bottom: 2px solid var(--border-color);
         }
 
         #map { 
             height: 500px; 
             width: 100%; 
-            border: 1px solid var(--sap-border);
+            border: 1px solid var(--border-color);
         }
 
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
@@ -73,7 +72,7 @@
 
         .pac-container { 
             border-radius: 0; 
-            border: 1px solid var(--sap-border); 
+            border: 1px solid var(--border-color); 
             box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
             z-index: 9999;
         }
@@ -81,99 +80,96 @@
 </head>
 <body class="min-h-screen">
 
-    <!-- SAP Shell Bar -->
-    <nav class="sap-shell-bar flex items-center justify-between px-6 shadow-md sticky top-0 z-50">
+    <!-- Shell Bar Corporativa -->
+    <nav class="shell-bar flex items-center justify-between px-6 shadow-md sticky top-0 z-50">
         <div class="flex items-center gap-4">
             <div class="flex items-center gap-2">
                 <i data-lucide="menu" class="text-white w-5 h-5 cursor-pointer"></i>
-                <span class="text-white font-bold text-sm tracking-wide">SAP</span>
+                <span class="text-white font-bold text-sm tracking-wide">LOGÍSTICA</span>
             </div>
             <div class="h-6 w-[1px] bg-slate-600 mx-2"></div>
-            <h1 class="text-white text-sm font-medium">Rutas Perfiles - Logística</h1>
+            <h1 class="text-white text-sm font-medium">Rutas Perfiles</h1>
         </div>
         <div class="flex items-center gap-4 text-white">
             <div class="flex items-center gap-1">
                 <div id="status-dot" class="w-2 h-2 rounded-full bg-slate-400"></div>
-                <span id="status-text" class="text-[10px] uppercase font-bold text-slate-300">Offline</span>
+                <span id="status-text" class="text-[10px] uppercase font-bold text-slate-300">Desconectado</span>
             </div>
-            <i data-lucide="settings" class="w-4 h-4 text-slate-300 cursor-pointer hover:text-white"></i>
-            <div class="w-8 h-8 rounded-full bg-slate-500 flex items-center justify-center text-[10px] font-bold">JD</div>
+            <i data-lucide="user" class="w-4 h-4 text-slate-300 cursor-pointer hover:text-white"></i>
+            <div class="w-8 h-8 rounded-full bg-slate-500 flex items-center justify-center text-[10px] font-bold uppercase">Admin</div>
         </div>
     </nav>
 
     <div class="max-w-[1600px] mx-auto p-6">
         
-        <!-- API KEY INPUT (FLAT STYLE) -->
+        <!-- API KEY INPUT -->
         <div class="bg-white border border-slate-200 p-4 mb-6 flex items-center justify-between shadow-sm">
             <div class="flex items-center gap-3">
                 <i data-lucide="key" class="w-4 h-4 text-slate-400"></i>
                 <input 
                     type="password" 
                     id="api-key-input" 
-                    placeholder="Ingrese su Google API Key para activar el servicio..." 
+                    placeholder="Ingrese su Google API Key para activar el cálculo de trayectorias..." 
                     class="text-xs outline-none w-96 border-b border-slate-200 focus:border-blue-500 py-1 font-mono bg-transparent"
                 >
             </div>
-            <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-tighter">S/4HANA Edition v2.5</div>
+            <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-tighter">Módulo de Control de Rutas</div>
         </div>
 
-        <!-- KPI TILES (SAP KPI PATTERN) -->
+        <!-- KPI TILES -->
         <div id="summary-panel" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div class="sap-kpi-card p-4 shadow-sm">
-                <p class="text-[11px] font-semibold text-slate-500 mb-2">DISTANCIA TOTAL</p>
+            <div class="kpi-tile p-4 shadow-sm">
+                <p class="text-[11px] font-semibold text-slate-500 mb-2 uppercase">Distancia Acumulada</p>
                 <div class="flex items-baseline gap-2">
                     <h3 id="stat-distance" class="text-2xl font-light text-slate-800">0.0</h3>
                     <span class="text-xs text-slate-500">km</span>
                 </div>
             </div>
-            <div class="sap-kpi-card p-4 shadow-sm">
-                <p class="text-[11px] font-semibold text-slate-500 mb-2">TIEMPO DE VIAJE</p>
+            <div class="kpi-tile p-4 shadow-sm">
+                <p class="text-[11px] font-semibold text-slate-500 mb-2 uppercase">Tiempo Estimado</p>
                 <div class="flex items-baseline gap-2">
                     <h3 id="stat-time" class="text-2xl font-light text-slate-800">0</h3>
                     <span class="text-xs text-slate-500">min</span>
                 </div>
             </div>
-            <div class="sap-kpi-card p-4 shadow-sm">
-                <p class="text-[11px] font-semibold text-slate-500 mb-2">EFICIENCIA DE RUTA</p>
+            <div class="kpi-tile p-4 shadow-sm">
+                <p class="text-[11px] font-semibold text-slate-500 mb-2 uppercase">Eficiencia de Ruta</p>
                 <div class="flex items-baseline gap-2">
                     <h3 id="stat-efficiency" class="text-2xl font-light text-slate-400">--%</h3>
                 </div>
             </div>
-            <div class="sap-kpi-card p-4 shadow-sm">
-                <p class="text-[11px] font-semibold text-slate-500 mb-2">RIESGO FRONTERIZO</p>
+            <div class="kpi-tile p-4 shadow-sm">
+                <p class="text-[11px] font-semibold text-slate-500 mb-2 uppercase">Riesgo de Cruce</p>
                 <h3 id="stat-risk" class="text-xl font-bold text-slate-300">N/A</h3>
             </div>
         </div>
 
-        <!-- MAIN LAYOUT -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
-            <!-- Side Panel: Controls -->
+            <!-- Panel de Entrada -->
             <div class="lg:col-span-4 space-y-6">
                 <div class="bg-white border border-slate-200 shadow-sm p-6">
                     <div class="flex items-center gap-2 mb-6 border-b border-slate-100 pb-3">
-                        <i data-lucide="edit-3" class="w-4 h-4 text-blue-600"></i>
-                        <h2 class="font-bold text-sm text-slate-700 uppercase tracking-wider">Plan de Entrega</h2>
+                        <i data-lucide="map-pin" class="w-4 h-4 text-blue-600"></i>
+                        <h2 class="font-bold text-sm text-slate-700 uppercase tracking-wider">Planificación de Trayectoria</h2>
                     </div>
 
-                    <!-- Pestañas de modo -->
                     <div class="flex gap-4 mb-6 border-b border-slate-100">
-                        <button id="tab-mx" onclick="switchTab('mx')" class="sap-tab-active pb-2 text-xs uppercase transition-all">México</button>
-                        <button id="tab-global" onclick="switchTab('global')" class="tab-inactive pb-2 text-xs uppercase transition-all">Internacional</button>
+                        <button id="tab-mx" onclick="switchTab('mx')" class="tab-active pb-2 text-xs uppercase transition-all">Solo México</button>
+                        <button id="tab-global" onclick="switchTab('global')" class="tab-inactive pb-2 text-xs uppercase transition-all">Libre (USA)</button>
                     </div>
 
                     <div class="space-y-4">
-                        <!-- Autocomplete Box -->
                         <div class="flex items-center gap-2">
                             <div class="relative flex-1">
                                 <input 
                                     type="text" 
                                     id="autocomplete-input" 
-                                    placeholder="Añadir dirección..." 
+                                    placeholder="Buscar ubicación específica..." 
                                     class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 outline-none"
                                 >
                             </div>
-                            <button onclick="addFromAutocomplete()" class="sap-btn-primary p-2.5 text-white">
+                            <button onclick="addFromAutocomplete()" class="btn-execute p-2.5 text-white">
                                 <i data-lucide="plus" class="w-4 h-4"></i>
                             </button>
                         </div>
@@ -186,25 +182,25 @@
 
                         <div class="grid grid-cols-2 gap-2">
                             <button onclick="document.getElementById('file-upload').click()" class="flex items-center justify-center gap-2 p-2.5 bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-bold hover:bg-slate-200">
-                                <i data-lucide="file-up" class="w-3.5 h-3.5"></i> IMPORTAR EXCEL
+                                <i data-lucide="upload" class="w-3.5 h-3.5"></i> IMPORTAR EXCEL
                             </button>
                             <input type="file" id="file-upload" class="hidden" accept=".xlsx, .xls, .csv">
                             <button onclick="clearAll()" class="flex items-center justify-center gap-2 p-2.5 bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-bold hover:bg-red-50 hover:text-red-600">
-                                <i data-lucide="eraser" class="w-3.5 h-3.5"></i> LIMPIAR
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> LIMPIAR
                             </button>
                         </div>
 
                         <div class="bg-slate-50 p-4 border border-slate-200 space-y-4">
                             <div class="flex items-center justify-between">
-                                <span class="text-[11px] font-medium text-slate-600">Restringir Vehículos Pesados</span>
+                                <span class="text-[11px] font-medium text-slate-600">Vehículo de Carga (Trailer)</span>
                                 <input type="checkbox" id="heavy-toggle" class="w-4 h-4 accent-blue-600">
                             </div>
                             <div class="flex items-center justify-between">
-                                <span class="text-[11px] font-medium text-slate-600">Optimizar Paradas</span>
+                                <span class="text-[11px] font-medium text-slate-600">Optimizar Paradas Intermedias</span>
                                 <input type="checkbox" id="optimize-toggle" class="w-4 h-4 accent-blue-600" checked>
                             </div>
                             <div class="flex items-center justify-between">
-                                <span class="text-[11px] font-medium text-slate-600">Incluir Retorno</span>
+                                <span class="text-[11px] font-medium text-slate-600">Incluir Retorno al Origen</span>
                                 <input type="checkbox" id="return-toggle" class="w-4 h-4 accent-blue-600">
                             </div>
                         </div>
@@ -212,40 +208,38 @@
                         <button 
                             id="btn-calculate"
                             onclick="startProcess()"
-                            class="w-full py-4 sap-btn-primary text-white font-bold text-xs uppercase tracking-widest shadow-lg shadow-blue-200"
+                            class="w-full py-4 btn-execute text-white font-bold text-xs uppercase tracking-widest shadow-lg shadow-blue-200"
                         >
-                            Calcular Ejecución
+                            Calcular Ejecución de Ruta
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Main Panel: Map and Table -->
+            <!-- Panel de Resultados -->
             <div class="lg:col-span-8 space-y-6">
                 
-                <!-- SAP Object Header for Map -->
                 <div id="map-container" class="hidden bg-white border border-slate-200 shadow-sm overflow-hidden">
                     <div class="bg-[#f7f7f7] p-3 px-5 border-b border-slate-200 flex justify-between items-center">
                         <span id="map-header-text" class="text-[11px] font-bold text-slate-600 uppercase">Visualización Geoespacial</span>
                         <div class="flex gap-2">
-                            <button onclick="exportInstructionsPDF()" class="bg-white border border-slate-200 p-2 px-3 text-[10px] font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-2">
-                                <i data-lucide="file-text" class="w-3.5 h-3.5 text-red-600"></i> HOJA RUTA (PDF)
+                            <button onclick="exportInstructionsPDF()" class="bg-white border border-slate-200 p-2 px-3 text-[10px] font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition-all">
+                                <i data-lucide="file-text" class="w-3.5 h-3.5 text-red-600"></i> PDF
                             </button>
-                            <button onclick="exportToCSV()" class="bg-white border border-slate-200 p-2 px-3 text-[10px] font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-2">
-                                <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-600"></i> EXPORTAR DATOS
+                            <button onclick="exportToCSV()" class="bg-white border border-slate-200 p-2 px-3 text-[10px] font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition-all">
+                                <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-600"></i> EXCEL
                             </button>
                         </div>
                     </div>
                     <div id="map"></div>
                 </div>
 
-                <!-- SAP Data Table -->
                 <div id="results-container" class="hidden bg-white border border-slate-200 shadow-sm overflow-hidden">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="sap-table-header text-[10px] font-bold text-slate-500 uppercase tracking-tight">
-                                <th class="px-6 py-4 border-r border-slate-100 w-20 text-center">ITEM</th>
-                                <th class="px-6 py-4">TRAMO / UBICACIONES</th>
+                            <tr class="table-head text-[10px] font-bold text-slate-500 uppercase tracking-tight">
+                                <th class="px-6 py-4 border-r border-slate-100 w-20 text-center">ID</th>
+                                <th class="px-6 py-4">TRAMO DE OPERACIÓN</th>
                                 <th class="px-6 py-4 text-center">DISTANCIA</th>
                                 <th class="px-6 py-4 text-center">DURACIÓN</th>
                             </tr>
@@ -255,8 +249,8 @@
                 </div>
 
                 <div id="empty-state" class="flex flex-col items-center justify-center h-[500px] bg-white border border-slate-200 border-dashed">
-                    <i data-lucide="package-search" class="w-16 h-16 text-slate-200 mb-4"></i>
-                    <p class="text-xs font-semibold text-slate-400 uppercase">Sin datos cargados. Inicie la planificación.</p>
+                    <i data-lucide="search" class="w-16 h-16 text-slate-200 mb-4"></i>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Ingrese ubicaciones para procesar datos de logística</p>
                 </div>
             </div>
         </div>
@@ -274,8 +268,8 @@
 
         function switchTab(mode) {
             currentMode = mode;
-            document.getElementById('tab-mx').className = mode === 'mx' ? 'sap-tab-active pb-2 text-xs uppercase' : 'tab-inactive pb-2 text-xs uppercase';
-            document.getElementById('tab-global').className = mode === 'global' ? 'sap-tab-active pb-2 text-xs uppercase' : 'tab-inactive pb-2 text-xs uppercase';
+            document.getElementById('tab-mx').className = mode === 'mx' ? 'tab-active pb-2 text-xs uppercase' : 'tab-inactive pb-2 text-xs uppercase';
+            document.getElementById('tab-global').className = mode === 'global' ? 'tab-active pb-2 text-xs uppercase' : 'tab-inactive pb-2 text-xs uppercase';
             if (autocomplete) {
                 autocomplete.setComponentRestrictions(mode === 'mx' ? { country: "mx" } : {});
             }
@@ -312,7 +306,7 @@
             script.onload = () => {
                 mapsLoaded = true;
                 document.getElementById('status-dot').className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-md";
-                document.getElementById('status-text').innerText = "SAP Online";
+                document.getElementById('status-text').innerText = "Servicio Activo";
                 document.getElementById('status-text').className = "text-[10px] uppercase font-bold text-emerald-400";
                 initMap();
                 initAutocomplete();
@@ -363,7 +357,7 @@
             if (!mapsLoaded) return alert("API Key no autorizada.");
             const input = document.getElementById('locations-input').value.trim();
             let rawPoints = input.split('\n').map(p => p.trim()).filter(p => p.length > 0);
-            if (rawPoints.length < 2) return alert("Mínimo 2 ubicaciones requeridas.");
+            if (rawPoints.length < 2) return alert("Se requieren mínimo 2 puntos de trayecto.");
 
             const btn = document.getElementById('btn-calculate');
             const optimize = document.getElementById('optimize-toggle').checked;
@@ -429,7 +423,7 @@
                     const rowData = { 
                         desde: geoPoints[i].name, hasta: geoPoints[i+1].name,
                         distancia: (isUsRoute && currentMode === 'mx') ? "BLOQUEADO" : leg.distance.text,
-                        duracion: (isUsRoute && currentMode === 'mx') ? "EUA DETECTADO" : leg.duration.text,
+                        duracion: (isUsRoute && currentMode === 'mx') ? "CRUCE DETECTADO" : leg.duration.text,
                         meters: (isUsRoute && currentMode === 'mx') ? 0 : leg.distance.value,
                         seconds: (isUsRoute && currentMode === 'mx') ? 0 : leg.duration.value,
                         violation: isUsRoute && currentMode === 'mx',
@@ -462,13 +456,13 @@
                 for(let idx = 0; idx < markerLimit; idx++) {
                     markers.push(new google.maps.Marker({ 
                         position: geoPoints[idx].location, map: map, 
-                        label: { text: (idx + 1).toString(), color: 'white', fontSize: '10px' } 
+                        label: { text: (idx + 1).toString(), color: 'white', fontSize: '10px', fontWeight: 'bold' } 
                     }));
                 }
 
                 map.fitBounds(bounds);
-            } catch (err) { alert("Error SAP en el cálculo de ruta."); }
-            btn.disabled = false; btn.innerHTML = `CALCULAR EJECUCIÓN`;
+            } catch (err) { alert("Error en el motor de cálculo de trayectorias."); }
+            btn.disabled = false; btn.innerHTML = `CALCULAR EJECUCIÓN DE RUTA`;
             lucide.createIcons();
         }
 
@@ -537,13 +531,13 @@
             doc.setFillColor(28, 45, 61); doc.rect(0, 0, 210, 40, 'F');
             doc.setTextColor(255, 255, 255); doc.setFontSize(22); doc.setFont("helvetica", "bold");
             doc.text("RUTAS PERFILES", 15, 20); doc.setFontSize(10); doc.setFont("helvetica", "normal");
-            doc.text(`SAP S/4HANA LOGISTICS REPORT - ${new Date().toLocaleDateString()}`, 15, 30);
+            doc.text(`REPORTE DE LOGÍSTICA Y DESPACHO - ${new Date().toLocaleDateString()}`, 15, 30);
             let y = 55;
-            doc.setTextColor(51, 51, 51); doc.setFontSize(12); doc.text("Instrucciones de Despacho", 15, y); y += 10;
+            doc.setTextColor(51, 51, 51); doc.setFontSize(12); doc.text("Instrucciones de Hoja de Ruta", 15, y); y += 10;
             resultsData.forEach((t, i) => {
                 if (y > 250) { doc.addPage(); y = 20; }
                 doc.setDrawColor(217, 217, 217); doc.line(15, y, 195, y); y += 10;
-                doc.setFont("helvetica", "bold"); doc.text(`PASO ${i+1}: ${t.desde} -> ${t.hasta}`, 15, y); y += 6;
+                doc.setFont("helvetica", "bold"); doc.text(`TRAMO ${i+1}: ${t.desde} -> ${t.hasta}`, 15, y); y += 6;
                 doc.setFont("helvetica", "normal"); doc.setFontSize(9);
                 if (t.steps) {
                     t.steps.forEach(s => {
@@ -555,16 +549,14 @@
                 }
                 y += 5;
             });
-            doc.save(`Rutas_SAP_${new Date().getTime()}.pdf`);
+            doc.save(`Rutas_Logistica_${new Date().getTime()}.pdf`);
         }
 
         function exportToCSV() {
             const csv = "\uFEFF" + ['Item,Origen,Destino,Distancia,Tiempo'].concat(resultsData.map((r,i) => `${i+1},"${r.desde}","${r.hasta}","${r.distancia}","${r.duracion}"`)).join("\n");
             const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
-            a.download = `SAP_Reporte_Logistica.csv`; a.click();
+            a.download = `Reporte_Logistica_Trayectorias.csv`; a.click();
         }
     </script>
 </body>
 </html>
-
-
