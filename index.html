@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rutas Perfiles - Módulo de Logística</title>
+    <title>Rutas Perfiles - Gestión Logística</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Iconos Lucide -->
@@ -13,224 +13,238 @@
     <!-- SheetJS para leer Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
         :root {
-            --shell-color: #1c2d3d;
-            --brand-blue: #0070f2;
-            --main-bg: #eff4f9;
-            --card-bg: #ffffff;
-            --border-color: #d9d9d9;
-            --text-main: #32363a;
+            --brand-dark: #1c2d3d;
+            --brand-accent: #0070f2;
+            --bg-gray: #eff4f9;
+            --border-ui: #d9d9d9;
         }
 
         body { 
             font-family: 'Inter', sans-serif; 
-            background-color: var(--main-bg);
-            color: var(--text-main);
+            background-color: var(--bg-gray);
+            color: #32363a;
         }
 
         .shell-bar {
-            background-color: var(--shell-color);
+            background-color: var(--brand-dark);
             height: 48px;
         }
 
         .kpi-tile {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-bottom: 4px solid var(--brand-blue);
+            background: #ffffff;
+            border: 1px solid var(--border-ui);
+            border-bottom: 4px solid var(--brand-accent);
+            transition: transform 0.2s;
         }
+
+        .kpi-tile:hover { transform: translateY(-2px); }
 
         .tab-active {
-            color: var(--brand-blue);
-            border-bottom: 2px solid var(--brand-blue);
-            font-weight: 600;
+            color: var(--brand-accent);
+            border-bottom: 2px solid var(--brand-accent);
+            font-weight: 700;
         }
 
-        .btn-execute {
-            background-color: var(--brand-blue);
-            transition: filter 0.2s;
+        .btn-main {
+            background-color: var(--brand-accent);
+            transition: all 0.2s;
         }
-        .btn-execute:hover {
-            filter: brightness(0.9);
-        }
-
-        .table-head {
-            background-color: #f7f7f7;
-            border-bottom: 2px solid var(--border-color);
-        }
+        .btn-main:hover { filter: brightness(0.9); transform: scale(1.01); }
+        .btn-main:active { transform: scale(0.99); }
 
         #map { 
-            height: 500px; 
+            height: 550px; 
             width: 100%; 
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border-ui);
         }
 
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #ccc; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #bbb; border-radius: 10px; }
 
         .pac-container { 
             border-radius: 0; 
-            border: 1px solid var(--border-color); 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+            border: 1px solid var(--border-ui); 
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1); 
             z-index: 9999;
+            font-family: 'Inter', sans-serif;
         }
     </style>
 </head>
 <body class="min-h-screen">
 
-    <!-- Shell Bar Corporativa -->
+    <!-- Barra Superior -->
     <nav class="shell-bar flex items-center justify-between px-6 shadow-md sticky top-0 z-50">
         <div class="flex items-center gap-4">
             <div class="flex items-center gap-2">
-                <i data-lucide="menu" class="text-white w-5 h-5 cursor-pointer"></i>
-                <span class="text-white font-bold text-sm tracking-wide">LOGÍSTICA</span>
+                <i data-lucide="layout-grid" class="text-white w-5 h-5 cursor-pointer"></i>
+                <span class="text-white font-extrabold text-sm tracking-tighter">LOGÍSTICA</span>
             </div>
             <div class="h-6 w-[1px] bg-slate-600 mx-2"></div>
-            <h1 class="text-white text-sm font-medium">Rutas Perfiles</h1>
+            <h1 class="text-white text-sm font-medium tracking-tight">Rutas Perfiles</h1>
         </div>
-        <div class="flex items-center gap-4 text-white">
-            <div class="flex items-center gap-1">
+        <div class="flex items-center gap-6 text-white">
+            <div class="flex items-center gap-2">
                 <div id="status-dot" class="w-2 h-2 rounded-full bg-slate-400"></div>
-                <span id="status-text" class="text-[10px] uppercase font-bold text-slate-300">Desconectado</span>
+                <span id="status-text" class="text-[10px] uppercase font-black text-slate-300">Desconectado</span>
             </div>
-            <i data-lucide="user" class="w-4 h-4 text-slate-300 cursor-pointer hover:text-white"></i>
-            <div class="w-8 h-8 rounded-full bg-slate-500 flex items-center justify-center text-[10px] font-bold uppercase">Admin</div>
+            <div class="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center text-[10px] font-bold border border-slate-500">RP</div>
         </div>
     </nav>
 
     <div class="max-w-[1600px] mx-auto p-6">
         
-        <!-- API KEY INPUT con Auto-guardado -->
-        <div class="bg-white border border-slate-200 p-4 mb-6 flex items-center justify-between shadow-sm">
-            <div class="flex items-center gap-3">
-                <i data-lucide="key" class="w-4 h-4 text-slate-400"></i>
-                <input 
-                    type="password" 
-                    id="api-key-input" 
-                    placeholder="Ingrese su Google API Key..." 
-                    class="text-xs outline-none w-96 border-b border-slate-200 focus:border-blue-500 py-1 font-mono bg-transparent"
-                >
-                <span id="save-indicator" class="text-[9px] text-emerald-600 font-bold uppercase hidden">Guardada</span>
+        <!-- API Config con Persistencia -->
+        <div class="bg-white border border-slate-200 p-4 mb-6 flex items-center justify-between shadow-sm rounded-sm">
+            <div class="flex items-center gap-4 flex-1">
+                <div class="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-500">
+                    <i data-lucide="key" class="w-3.5 h-3.5"></i>
+                    <input 
+                        type="password" 
+                        id="api-key-input" 
+                        placeholder="Google API Key..." 
+                        class="text-xs outline-none w-64 bg-transparent font-mono"
+                    >
+                </div>
+                <span id="save-indicator" class="text-[9px] text-emerald-600 font-bold uppercase hidden animate-pulse">✓ Guardada Localmente</span>
             </div>
-            <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-tighter">Módulo de Control de Rutas</div>
+            <div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Panel de Control de Tráfico</div>
         </div>
 
-        <!-- KPI TILES -->
-        <div id="summary-panel" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div class="kpi-tile p-4 shadow-sm">
-                <p class="text-[11px] font-semibold text-slate-500 mb-2 uppercase">Distancia Acumulada</p>
-                <div class="flex items-baseline gap-2">
+        <!-- Dashboard KPI -->
+        <div id="summary-panel" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="kpi-tile p-5 shadow-sm">
+                <p class="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">Distancia Total</p>
+                <div class="flex items-baseline gap-1">
                     <h3 id="stat-distance" class="text-2xl font-light text-slate-800">0.0</h3>
-                    <span class="text-xs text-slate-500">km</span>
+                    <span class="text-xs font-bold text-slate-500 uppercase">km</span>
                 </div>
             </div>
-            <div class="kpi-tile p-4 shadow-sm">
-                <p class="text-[11px] font-semibold text-slate-500 mb-2 uppercase">Tiempo Estimado</p>
-                <div class="flex items-baseline gap-2">
+            <div class="kpi-tile p-5 shadow-sm">
+                <p class="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">Tiempo Estimado</p>
+                <div class="flex items-baseline gap-1">
                     <h3 id="stat-time" class="text-2xl font-light text-slate-800">0</h3>
-                    <span class="text-xs text-slate-500">min</span>
+                    <span class="text-xs font-bold text-slate-500 uppercase">min</span>
                 </div>
             </div>
-            <div class="kpi-tile p-4 shadow-sm">
-                <p class="text-[11px] font-semibold text-slate-500 mb-2 uppercase">Eficiencia de Ruta</p>
-                <div class="flex items-baseline gap-2">
-                    <h3 id="stat-efficiency" class="text-2xl font-light text-slate-400">--%</h3>
+            <div class="kpi-tile p-5 shadow-sm">
+                <p class="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">Ahorro Eficiencia</p>
+                <div class="flex items-baseline">
+                    <h3 id="stat-efficiency" class="text-2xl font-light text-slate-300">--%</h3>
                 </div>
             </div>
-            <div class="kpi-tile p-4 shadow-sm">
-                <p class="text-[11px] font-semibold text-slate-500 mb-2 uppercase">Riesgo de Cruce</p>
-                <h3 id="stat-risk" class="text-xl font-bold text-slate-300">N/A</h3>
+            <div class="kpi-tile p-5 shadow-sm">
+                <p class="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">Riesgo Frontera</p>
+                <h3 id="stat-risk" class="text-xl font-black text-slate-300">N/A</h3>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
-            <!-- Panel de Entrada -->
+            <!-- Columna de Control -->
             <div class="lg:col-span-4 space-y-6">
                 <div class="bg-white border border-slate-200 shadow-sm p-6">
-                    <div class="flex items-center gap-2 mb-6 border-b border-slate-100 pb-3">
-                        <i data-lucide="map-pin" class="w-4 h-4 text-blue-600"></i>
-                        <h2 class="font-bold text-sm text-slate-700 uppercase tracking-wider">Planificación de Trayectoria</h2>
+                    <div class="flex items-center gap-2 mb-6 border-b border-slate-100 pb-4">
+                        <i data-lucide="map" class="w-4 h-4 text-blue-600"></i>
+                        <h2 class="font-bold text-xs text-slate-700 uppercase tracking-widest">Configuración de Ruta</h2>
                     </div>
 
-                    <div class="flex gap-4 mb-6 border-b border-slate-100">
-                        <button id="tab-mx" onclick="switchTab('mx')" class="tab-active pb-2 text-xs uppercase transition-all">Solo México</button>
-                        <button id="tab-global" onclick="switchTab('global')" class="tab-inactive pb-2 text-xs uppercase transition-all">Libre (USA)</button>
+                    <!-- Pestañas de Restricción -->
+                    <div class="flex gap-6 mb-6 border-b border-slate-100">
+                        <button id="tab-mx" onclick="switchTab('mx')" class="sap-tab-active pb-3 text-[11px] uppercase tracking-tighter transition-all tab-active">México (Protegido)</button>
+                        <button id="tab-global" onclick="switchTab('global')" class="tab-inactive pb-3 text-[11px] uppercase tracking-tighter transition-all">Internacional (Libre)</button>
                     </div>
 
                     <div class="space-y-4">
+                        <!-- Buscador Inteligente -->
                         <div class="flex items-center gap-2">
-                            <div class="relative flex-1">
+                            <div class="relative flex-1 group">
+                                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400"></i>
                                 <input 
                                     type="text" 
                                     id="autocomplete-input" 
-                                    placeholder="Buscar ubicación específica..." 
-                                    class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 outline-none"
+                                    placeholder="Añadir parada..." 
+                                    class="w-full text-xs pl-9 pr-3 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 outline-none rounded-sm transition-all"
                                 >
                             </div>
-                            <button onclick="addFromAutocomplete()" class="btn-execute p-2.5 text-white">
+                            <button onclick="addFromAutocomplete()" class="btn-main p-3 text-white rounded-sm shadow-md">
                                 <i data-lucide="plus" class="w-4 h-4"></i>
                             </button>
                         </div>
 
                         <textarea 
                             id="locations-input"
-                            placeholder="Punto 1 (Origen)&#10;Punto 2..."
-                            class="w-full h-40 p-4 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 outline-none text-xs font-mono resize-none custom-scrollbar"
+                            placeholder="Ingrese las direcciones, una por línea...&#10;Punto 1 es el ORIGEN."
+                            class="w-full h-48 p-4 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 outline-none text-xs font-mono resize-none custom-scrollbar rounded-sm"
                         ></textarea>
 
+                        <!-- Acciones Masivas -->
                         <div class="grid grid-cols-2 gap-2">
-                            <button onclick="document.getElementById('file-upload').click()" class="flex items-center justify-center gap-2 p-2.5 bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-bold hover:bg-slate-200">
-                                <i data-lucide="upload" class="w-3.5 h-3.5"></i> IMPORTAR EXCEL
+                            <button onclick="document.getElementById('file-upload').click()" class="flex items-center justify-center gap-2 p-3 bg-white border border-slate-200 text-slate-600 text-[10px] font-bold hover:bg-slate-50 rounded-sm">
+                                <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i> EXCEL/CSV
                             </button>
                             <input type="file" id="file-upload" class="hidden" accept=".xlsx, .xls, .csv">
-                            <button onclick="clearAll()" class="flex items-center justify-center gap-2 p-2.5 bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-bold hover:bg-red-50 hover:text-red-600">
+                            <button onclick="clearAll()" class="flex items-center justify-center gap-2 p-3 bg-white border border-slate-200 text-slate-600 text-[10px] font-bold hover:bg-red-50 hover:text-red-600 rounded-sm transition-colors">
                                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> LIMPIAR
                             </button>
                         </div>
 
-                        <div class="bg-slate-50 p-4 border border-slate-200 space-y-4">
+                        <!-- Parámetros de Carga -->
+                        <div class="bg-slate-50 p-5 border border-slate-200 rounded-sm space-y-5">
                             <div class="flex items-center justify-between">
-                                <span class="text-[11px] font-medium text-slate-600">Vehículo de Carga (Trailer)</span>
-                                <input type="checkbox" id="heavy-toggle" class="w-4 h-4 accent-blue-600">
+                                <div class="flex flex-col">
+                                    <span class="text-[11px] font-bold text-slate-700">Vehículo Pesado</span>
+                                    <span class="text-[9px] text-slate-400">Evitar rutas no aptas para trailers</span>
+                                </div>
+                                <input type="checkbox" id="heavy-toggle" class="w-4 h-4 accent-blue-600 cursor-pointer">
                             </div>
                             <div class="flex items-center justify-between">
-                                <span class="text-[11px] font-medium text-slate-600">Optimizar Paradas Intermedias</span>
-                                <input type="checkbox" id="optimize-toggle" class="w-4 h-4 accent-blue-600" checked>
+                                <div class="flex flex-col">
+                                    <span class="text-[11px] font-bold text-slate-700">Optimizar Paradas</span>
+                                    <span class="text-[9px] text-slate-400">Reordenar para menor distancia</span>
+                                </div>
+                                <input type="checkbox" id="optimize-toggle" class="w-4 h-4 accent-blue-600 cursor-pointer" checked>
                             </div>
                             <div class="flex items-center justify-between">
-                                <span class="text-[11px] font-medium text-slate-600">Incluir Retorno al Origen</span>
-                                <input type="checkbox" id="return-toggle" class="w-4 h-4 accent-blue-600">
+                                <div class="flex flex-col">
+                                    <span class="text-[11px] font-bold text-slate-700">Incluir Retorno</span>
+                                    <span class="text-[9px] text-slate-400">Volver automáticamente al Punto 1</span>
+                                </div>
+                                <input type="checkbox" id="return-toggle" class="w-4 h-4 accent-blue-600 cursor-pointer">
                             </div>
                         </div>
 
                         <button 
                             id="btn-calculate"
                             onclick="startProcess()"
-                            class="w-full py-4 btn-execute text-white font-bold text-xs uppercase tracking-widest shadow-lg shadow-blue-200"
+                            class="w-full py-5 btn-main text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-100 rounded-sm"
                         >
-                            Calcular Ejecución de Ruta
+                            Calcular Plan de Ruta
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Panel de Resultados -->
+            <!-- Columna de Resultados -->
             <div class="lg:col-span-8 space-y-6">
                 
-                <div id="map-container" class="hidden bg-white border border-slate-200 shadow-sm overflow-hidden">
+                <!-- Mapa y Herramientas -->
+                <div id="map-container" class="hidden bg-white border border-slate-200 shadow-sm overflow-hidden rounded-sm">
                     <div class="bg-[#f7f7f7] p-3 px-5 border-b border-slate-200 flex flex-wrap justify-between items-center gap-4">
-                        <span id="map-header-text" class="text-[11px] font-bold text-slate-600 uppercase">Visualización Geoespacial</span>
+                        <div class="flex items-center gap-3">
+                            <div class="w-2 h-2 rounded-full bg-orange-500"></div>
+                            <span id="map-header-text" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Monitor Geoespacial</span>
+                        </div>
                         <div class="flex flex-wrap gap-2">
-                            <button onclick="shareViaWhatsApp()" class="bg-white border border-emerald-200 p-2 px-3 text-[10px] font-bold text-emerald-700 hover:bg-emerald-50 flex items-center gap-2 transition-all">
-                                <i data-lucide="message-circle" class="w-3.5 h-3.5 text-emerald-600"></i> WHATSAPP
+                            <button onclick="shareViaWhatsApp()" class="bg-emerald-600 p-2.5 px-4 text-[10px] font-bold text-white hover:bg-emerald-700 flex items-center gap-2 rounded-sm transition-all shadow-lg shadow-emerald-50">
+                                <i data-lucide="message-square" class="w-3.5 h-3.5"></i> WHATSAPP
                             </button>
-                            <button onclick="exportInstructionsPDF()" class="bg-white border border-slate-200 p-2 px-3 text-[10px] font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition-all">
-                                <i data-lucide="file-text" class="w-3.5 h-3.5 text-red-600"></i> PDF
+                            <button onclick="exportInstructionsPDF()" class="bg-white border border-slate-300 p-2.5 px-4 text-[10px] font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-2 rounded-sm">
+                                <i data-lucide="file-text" class="w-3.5 h-3.5 text-red-600"></i> DESCARGAR PDF
                             </button>
-                            <button onclick="exportToCSV()" class="bg-white border border-slate-200 p-2 px-3 text-[10px] font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition-all">
+                            <button onclick="exportToCSV()" class="bg-white border border-slate-300 p-2.5 px-4 text-[10px] font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-2 rounded-sm">
                                 <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-600"></i> EXCEL
                             </button>
                         </div>
@@ -238,23 +252,26 @@
                     <div id="map"></div>
                 </div>
 
-                <div id="results-container" class="hidden bg-white border border-slate-200 shadow-sm overflow-hidden">
+                <!-- Tabla de Tramos -->
+                <div id="results-container" class="hidden bg-white border border-slate-200 shadow-sm overflow-hidden rounded-sm">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="table-head text-[10px] font-bold text-slate-500 uppercase tracking-tight">
-                                <th class="px-6 py-4 border-r border-slate-100 w-20 text-center">ID</th>
-                                <th class="px-6 py-4">TRAMO DE OPERACIÓN</th>
-                                <th class="px-6 py-4 text-center">DISTANCIA</th>
-                                <th class="px-6 py-4 text-center">DURACIÓN</th>
+                            <tr class="bg-slate-50 text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                <th class="px-6 py-5 border-r border-slate-100 w-16 text-center">ID</th>
+                                <th class="px-6 py-5">Tramo de Operación</th>
+                                <th class="px-6 py-5 text-center">Distancia</th>
+                                <th class="px-6 py-5 text-center">Duración</th>
                             </tr>
                         </thead>
                         <tbody id="results-body" class="text-xs text-slate-700"></tbody>
                     </table>
                 </div>
 
-                <div id="empty-state" class="flex flex-col items-center justify-center h-[500px] bg-white border border-slate-200 border-dashed">
-                    <i data-lucide="search" class="w-16 h-16 text-slate-200 mb-4"></i>
-                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Ingrese ubicaciones para procesar datos de logística</p>
+                <div id="empty-state" class="flex flex-col items-center justify-center h-[550px] bg-white border border-slate-200 border-dashed rounded-sm">
+                    <div class="bg-slate-50 p-6 rounded-full mb-4">
+                        <i data-lucide="route" class="w-12 h-12 text-slate-200"></i>
+                    </div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Ingrese los destinos para procesar la logística</p>
                 </div>
             </div>
         </div>
@@ -266,14 +283,14 @@
         let currentMode = 'mx'; 
         let mapsLoaded = false;
         let resultsData = [];
-        let finalGeoPoints = []; // Para compartir
+        let finalGeoPoints = []; 
         let map, directionsService, geocoder, distanceMatrixService, autocomplete;
         let polylines = [];
         let markers = [];
 
-        // --- GESTIÓN DE API KEY ---
+        // --- INICIALIZACIÓN Y PERSISTENCIA ---
         document.addEventListener('DOMContentLoaded', () => {
-            const savedKey = localStorage.getItem('google_maps_api_key');
+            const savedKey = localStorage.getItem('logistics_api_key_v2');
             if (savedKey) {
                 document.getElementById('api-key-input').value = savedKey;
                 loadGoogleMaps(savedKey);
@@ -283,39 +300,25 @@
         document.getElementById('api-key-input').addEventListener('input', function(e) {
             const key = e.target.value.trim();
             if (key.length > 25) {
-                localStorage.setItem('google_maps_api_key', key);
-                document.getElementById('save-indicator').classList.remove('hidden');
-                setTimeout(() => document.getElementById('save-indicator').classList.add('hidden'), 2000);
+                localStorage.setItem('logistics_api_key_v2', key);
+                const indicator = document.getElementById('save-indicator');
+                indicator.classList.remove('hidden');
+                setTimeout(() => indicator.classList.add('hidden'), 2500);
                 loadGoogleMaps(key);
             }
         });
 
-        // --- LOGÍSTICA ---
         function switchTab(mode) {
             currentMode = mode;
-            document.getElementById('tab-mx').className = mode === 'mx' ? 'tab-active pb-2 text-xs uppercase' : 'tab-inactive pb-2 text-xs uppercase';
-            document.getElementById('tab-global').className = mode === 'global' ? 'tab-active pb-2 text-xs uppercase' : 'tab-inactive pb-2 text-xs uppercase';
+            document.getElementById('tab-mx').className = mode === 'mx' ? 'pb-3 text-[11px] uppercase tracking-tighter transition-all tab-active' : 'pb-3 text-[11px] uppercase tracking-tighter transition-all text-slate-400 font-bold';
+            document.getElementById('tab-global').className = mode === 'global' ? 'pb-3 text-[11px] uppercase tracking-tighter transition-all tab-active' : 'pb-3 text-[11px] uppercase tracking-tighter transition-all text-slate-400 font-bold';
             if (autocomplete) {
                 autocomplete.setComponentRestrictions(mode === 'mx' ? { country: "mx" } : {});
             }
             lucide.createIcons();
         }
 
-        document.getElementById('file-upload').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                const bstr = evt.target.result;
-                const wb = XLSX.read(bstr, {type:'binary'});
-                const ws = wb.Sheets[wb.SheetNames[0]];
-                const data = XLSX.utils.sheet_to_json(ws, {header:1});
-                const addresses = data.map(row => row[0]).filter(a => a && String(a).trim().length > 0);
-                document.getElementById('locations-input').value = addresses.join('\n');
-            };
-            reader.readAsBinaryString(file);
-        });
-
+        // --- MOTOR DE MAPAS ---
         function loadGoogleMaps(key) {
             const oldScript = document.getElementById('google-maps-js');
             if (oldScript) oldScript.remove();
@@ -325,9 +328,9 @@
             script.async = true;
             script.onload = () => {
                 mapsLoaded = true;
-                document.getElementById('status-dot').className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-md";
+                document.getElementById('status-dot').className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm animate-pulse";
                 document.getElementById('status-text').innerText = "Servicio Activo";
-                document.getElementById('status-text').className = "text-[10px] uppercase font-bold text-emerald-400";
+                document.getElementById('status-text').className = "text-[10px] uppercase font-bold text-emerald-500";
                 initMap();
                 initAutocomplete();
             };
@@ -339,8 +342,8 @@
                 zoom: 5, center: { lat: 23.6345, lng: -102.5528 },
                 disableDefaultUI: false,
                 styles: [
-                    { featureType: "water", elementType: "geometry", stylers: [{ color: "#e9e9e9" }] },
-                    { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#f5f5f5" }] }
+                    { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] },
+                    { featureType: "water", elementType: "geometry", stylers: [{ color: "#dae3f0" }] }
                 ]
             });
             directionsService = new google.maps.DirectionsService();
@@ -351,7 +354,7 @@
         function initAutocomplete() {
             autocomplete = new google.maps.places.Autocomplete(document.getElementById('autocomplete-input'), {
                 componentRestrictions: currentMode === 'mx' ? { country: "mx" } : {},
-                fields: ["formatted_address", "geometry"]
+                fields: ["formatted_address", "geometry", "name"]
             });
         }
 
@@ -365,19 +368,12 @@
             }
         }
 
-        function clearAll() {
-            document.getElementById('locations-input').value = "";
-            document.getElementById('empty-state').classList.remove('hidden');
-            document.getElementById('map-container').classList.add('hidden');
-            document.getElementById('results-container').classList.add('hidden');
-            updateSummary(0, 0, 0, 'N/A');
-        }
-
+        // --- CÁLCULOS LOGÍSTICOS ---
         async function startProcess() {
-            if (!mapsLoaded) return alert("API Key no autorizada.");
+            if (!mapsLoaded) return alert("Ingrese su API Key válida.");
             const input = document.getElementById('locations-input').value.trim();
             let rawPoints = input.split('\n').map(p => p.trim()).filter(p => p.length > 0);
-            if (rawPoints.length < 2) return alert("Se requieren mínimo 2 puntos de trayecto.");
+            if (rawPoints.length < 2) return alert("Se requieren mínimo 2 puntos (Origen y Destino).");
 
             const btn = document.getElementById('btn-calculate');
             const optimize = document.getElementById('optimize-toggle').checked;
@@ -385,7 +381,7 @@
             const heavyVehicle = document.getElementById('heavy-toggle').checked;
             
             btn.disabled = true;
-            btn.innerHTML = `PROCESANDO...`;
+            btn.innerHTML = `PROCESANDO LOGÍSTICA...`;
             
             polylines.forEach(p => p.setMap(null));
             markers.forEach(m => m.setMap(null));
@@ -396,26 +392,32 @@
                 let geoPoints = [];
                 for(let p of rawPoints) {
                     const res = await new Promise((resolve) => {
-                        geocoder.geocode({ address: currentMode === 'mx' ? p + ", México" : p, componentRestrictions: currentMode === 'mx' ? {country: 'MX'} : {} }, (r) => resolve(r));
+                        geocoder.geocode({ 
+                            address: currentMode === 'mx' ? p + ", México" : p, 
+                            componentRestrictions: currentMode === 'mx' ? {country: 'MX'} : {} 
+                        }, (r) => resolve(r));
                     });
                     if (res) geoPoints.push({ name: p, location: res[0].geometry.location, formatted: res[0].formatted_address });
                 }
 
+                // Cálculo Base para Eficiencia (Original + Retorno si aplica)
                 let originalOrderPoints = [...geoPoints];
                 if (includeReturn) {
                     originalOrderPoints.push({ ...originalOrderPoints[0], name: originalOrderPoints[0].name + " (Retorno)" });
                 }
                 const originalDist = await calculateTotalDistance(originalOrderPoints, currentMode === 'mx', heavyVehicle);
 
+                // Optimización de Orden
                 if (optimize && geoPoints.length > 2) {
                     geoPoints = await optimizeRoute(geoPoints, currentMode === 'mx', heavyVehicle);
                 }
 
+                // Aplicar Retorno a la ruta final
                 if (includeReturn) {
                     geoPoints.push({ ...geoPoints[0], name: geoPoints[0].name + " (Retorno)" });
                 }
 
-                finalGeoPoints = geoPoints; // Guardar para WhatsApp
+                finalGeoPoints = geoPoints;
 
                 document.getElementById('empty-state').classList.add('hidden');
                 document.getElementById('results-container').classList.remove('hidden');
@@ -439,13 +441,15 @@
 
                     const leg = response.routes[0].legs[0];
                     const path = response.routes[0].overview_path;
+                    
+                    // MURO DIGITAL: Escáner de frontera norte
                     const isUsRoute = path.some(c => c.lat() > 32.72 || (c.lng() > -106.5 && c.lat() > 31.8));
                     if (isUsRoute && currentMode === 'mx') hasViolation = true;
 
                     const rowData = { 
                         desde: geoPoints[i].name, hasta: geoPoints[i+1].name,
                         distancia: (isUsRoute && currentMode === 'mx') ? "BLOQUEADO" : leg.distance.text,
-                        duracion: (isUsRoute && currentMode === 'mx') ? "CRUCE DETECTADO" : leg.duration.text,
+                        duracion: (isUsRoute && currentMode === 'mx') ? "EUA DETECTADO" : leg.duration.text,
                         meters: (isUsRoute && currentMode === 'mx') ? 0 : leg.distance.value,
                         seconds: (isUsRoute && currentMode === 'mx') ? 0 : leg.duration.value,
                         violation: isUsRoute && currentMode === 'mx',
@@ -460,13 +464,14 @@
                     const poly = new google.maps.Polyline({
                         path: path,
                         strokeColor: rowData.violation ? "#d93025" : (rowData.isReturn ? "#0070f2" : (currentMode === 'mx' ? "#f59e0b" : "#28a745")),
-                        strokeWeight: 4, map: map
+                        strokeWeight: 5, map: map, strokeOpacity: 0.8
                     });
                     polylines.push(poly);
                     path.forEach(p => bounds.extend(p));
                     addTableRow(rowData, i + 1);
                 }
 
+                // Cálculo Final Eficiencia
                 let efficiency = 0;
                 if (optimize && originalDist > 0) {
                     efficiency = Math.max(0, Math.round(((originalDist - totalMeters) / originalDist) * 100));
@@ -474,17 +479,18 @@
 
                 updateSummary(totalMeters, totalSeconds, efficiency, hasViolation ? 'ALTO' : 'SEGURO');
 
+                // Marcadores
                 const markerLimit = includeReturn ? geoPoints.length - 1 : geoPoints.length;
                 for(let idx = 0; idx < markerLimit; idx++) {
                     markers.push(new google.maps.Marker({ 
                         position: geoPoints[idx].location, map: map, 
-                        label: { text: (idx + 1).toString(), color: 'white', fontSize: '10px', fontWeight: 'bold' } 
+                        label: { text: (idx + 1).toString(), color: 'white', fontSize: '10px', fontWeight: '900' } 
                     }));
                 }
 
                 map.fitBounds(bounds);
-            } catch (err) { alert("Error en el motor de cálculo de trayectorias."); }
-            btn.disabled = false; btn.innerHTML = `CALCULAR EJECUCIÓN DE RUTA`;
+            } catch (err) { alert("Fallo en el cálculo. Verifique sus puntos de paso."); }
+            btn.disabled = false; btn.innerHTML = `CALCULAR PLAN DE RUTA`;
             lucide.createIcons();
         }
 
@@ -525,6 +531,7 @@
             return opt;
         }
 
+        // --- ACTUALIZACIÓN UI ---
         function updateSummary(dist, time, eff, risk) {
             document.getElementById('stat-distance').innerText = (dist/1000).toFixed(1);
             document.getElementById('stat-time').innerText = Math.round(time/60);
@@ -537,48 +544,31 @@
         function addTableRow(item, index) {
             const row = document.createElement('tr');
             row.className = item.violation ? "bg-red-50" : "hover:bg-slate-50 transition-all border-b border-slate-100";
-            row.innerHTML = `<td class="px-6 py-4 text-center font-bold text-slate-300 border-r border-slate-100">${index.toString().padStart(2, '0')}</td>
-                <td class="px-6 py-4"><div class="flex flex-col"><span class="text-[9px] text-slate-400 font-semibold uppercase truncate max-w-[300px]">${item.desde}</span>
-                <span class="text-xs font-semibold text-slate-700">${item.hasta}</span></div></td>
-                <td class="px-6 py-4 text-center font-semibold text-slate-900">${item.distancia}</td>
-                <td class="px-6 py-4 text-center">${item.violation ? `<span class="bg-red-600 text-white px-2 py-1 text-[9px] font-bold uppercase">Restringido</span>` : 
+            row.innerHTML = `<td class="px-6 py-5 text-center font-bold text-slate-300 border-r border-slate-100">${index.toString().padStart(2, '0')}</td>
+                <td class="px-6 py-5"><div class="flex flex-col"><span class="text-[9px] text-slate-400 font-bold uppercase truncate max-w-[300px]">${item.desde}</span>
+                <span class="text-xs font-bold text-slate-700">${item.hasta}</span></div></td>
+                <td class="px-6 py-5 text-center font-bold text-slate-900">${item.distancia}</td>
+                <td class="px-6 py-5 text-center">${item.violation ? `<span class="bg-red-600 text-white px-2 py-1 text-[9px] font-black uppercase rounded-sm">Bloqueado</span>` : 
                 `<span class="text-slate-600 font-bold">${item.duracion}</span>`}</td>`;
             document.getElementById('results-body').appendChild(row);
         }
 
-        // --- COMPARTIR WHATSAPP ---
+        // --- COMPARTIR Y EXPORTAR ---
         function shareViaWhatsApp() {
             if (resultsData.length === 0) return;
-
-            const totalDist = document.getElementById('stat-distance').innerText;
-            const totalTime = document.getElementById('stat-time').innerText;
-            
-            let message = `🚚 *HOJA DE RUTA - RUTAS PERFILES*\n\n`;
-            message += `📍 *Resumen del Viaje:*\n`;
-            message += `- Distancia: ${totalDist} km\n`;
-            message += `- Tiempo: ${totalTime} min\n`;
-            message += `- Modo: ${currentMode === 'mx' ? 'Solo México' : 'Internacional'}\n\n`;
-
-            message += `🚩 *Itinerario:*\n`;
-            finalGeoPoints.forEach((p, idx) => {
-                message += `${idx + 1}. ${p.name}\n`;
-            });
-
-            // Generar Link de Navegación de Google Maps
+            const dist = document.getElementById('stat-distance').innerText;
+            let message = `🚚 *PLAN DE RUTA - RUTAS PERFILES*\n\n`;
+            message += `📍 *Resumen:*\n- Distancia: ${dist} km\n- Tiempo: ${document.getElementById('stat-time').innerText} min\n\n`;
+            message += `🚩 *Paradas:*\n`;
+            finalGeoPoints.forEach((p, idx) => { message += `${idx + 1}. ${p.name}\n`; });
             const origin = encodeURIComponent(finalGeoPoints[0].name);
             const dest = encodeURIComponent(finalGeoPoints[finalGeoPoints.length - 1].name);
             const waypoints = finalGeoPoints.slice(1, -1).map(p => encodeURIComponent(p.name)).join('|');
-            
             const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&waypoints=${waypoints}&travelmode=driving`;
-            
-            message += `\n🗺️ *Iniciar Navegación:*\n${mapsUrl}\n\n`;
-            message += `Buen viaje.`;
-
-            const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-            window.open(waUrl, '_blank');
+            message += `\n🗺️ *Navegación GPS:*\n${mapsUrl}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
         }
 
-        // --- EXPORTACIONES ---
         async function exportInstructionsPDF() {
             if (resultsData.length === 0) return;
             const { jsPDF } = window.jspdf;
@@ -586,13 +576,12 @@
             doc.setFillColor(28, 45, 61); doc.rect(0, 0, 210, 40, 'F');
             doc.setTextColor(255, 255, 255); doc.setFontSize(22); doc.setFont("helvetica", "bold");
             doc.text("RUTAS PERFILES", 15, 20); doc.setFontSize(10); doc.setFont("helvetica", "normal");
-            doc.text(`REPORTE DE LOGÍSTICA Y DESPACHO - ${new Date().toLocaleDateString()}`, 15, 30);
+            doc.text(`HOJA DE RUTA Y DESPACHO - ${new Date().toLocaleDateString()}`, 15, 30);
             let y = 55;
-            doc.setTextColor(51, 51, 51); doc.setFontSize(12); doc.text("Instrucciones de Hoja de Ruta", 15, y); y += 10;
             resultsData.forEach((t, i) => {
                 if (y > 250) { doc.addPage(); y = 20; }
                 doc.setDrawColor(217, 217, 217); doc.line(15, y, 195, y); y += 10;
-                doc.setFont("helvetica", "bold"); doc.text(`TRAMO ${i+1}: ${t.desde} -> ${t.hasta}`, 15, y); y += 6;
+                doc.setFont("helvetica", "bold"); doc.text(`PASO ${i+1}: ${t.desde} -> ${t.hasta}`, 15, y); y += 6;
                 doc.setFont("helvetica", "normal"); doc.setFontSize(9);
                 if (t.steps) {
                     t.steps.forEach(s => {
@@ -604,14 +593,38 @@
                 }
                 y += 5;
             });
-            doc.save(`Rutas_Logistica_${new Date().getTime()}.pdf`);
+            doc.save(`Ruta_Logistica_${new Date().getTime()}.pdf`);
         }
 
         function exportToCSV() {
             const csv = "\uFEFF" + ['Item,Origen,Destino,Distancia,Tiempo'].concat(resultsData.map((r,i) => `${i+1},"${r.desde}","${r.hasta}","${r.distancia}","${r.duracion}"`)).join("\n");
             const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
-            a.download = `Reporte_Logistica_Trayectorias.csv`; a.click();
+            a.download = `Reporte_Logistica_CSV.csv`; a.click();
         }
+
+        function clearAll() {
+            document.getElementById('locations-input').value = "";
+            document.getElementById('empty-state').classList.remove('hidden');
+            document.getElementById('map-container').classList.add('hidden');
+            document.getElementById('results-container').classList.add('hidden');
+            updateSummary(0, 0, 0, 'N/A');
+        }
+
+        document.getElementById('file-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const bstr = evt.target.result;
+                const wb = XLSX.read(bstr, {type:'binary'});
+                const ws = wb.Sheets[wb.SheetNames[0]];
+                const data = XLSX.utils.sheet_to_json(ws, {header:1});
+                const addresses = data.map(row => row[0]).filter(a => a && String(a).trim().length > 0);
+                document.getElementById('locations-input').value = addresses.join('\n');
+            };
+            reader.readAsBinaryString(file);
+        });
+
     </script>
 </body>
 </html>
