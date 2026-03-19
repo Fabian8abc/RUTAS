@@ -102,16 +102,17 @@
 
     <div class="max-w-[1600px] mx-auto p-6">
         
-        <!-- API KEY INPUT -->
+        <!-- API KEY INPUT con Auto-guardado -->
         <div class="bg-white border border-slate-200 p-4 mb-6 flex items-center justify-between shadow-sm">
             <div class="flex items-center gap-3">
                 <i data-lucide="key" class="w-4 h-4 text-slate-400"></i>
                 <input 
                     type="password" 
                     id="api-key-input" 
-                    placeholder="Ingrese su Google API Key para activar el cálculo de trayectorias..." 
+                    placeholder="Ingrese su Google API Key..." 
                     class="text-xs outline-none w-96 border-b border-slate-200 focus:border-blue-500 py-1 font-mono bg-transparent"
                 >
+                <span id="save-indicator" class="text-[9px] text-emerald-600 font-bold uppercase hidden">Guardada</span>
             </div>
             <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-tighter">Módulo de Control de Rutas</div>
         </div>
@@ -220,9 +221,12 @@
             <div class="lg:col-span-8 space-y-6">
                 
                 <div id="map-container" class="hidden bg-white border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="bg-[#f7f7f7] p-3 px-5 border-b border-slate-200 flex justify-between items-center">
+                    <div class="bg-[#f7f7f7] p-3 px-5 border-b border-slate-200 flex flex-wrap justify-between items-center gap-4">
                         <span id="map-header-text" class="text-[11px] font-bold text-slate-600 uppercase">Visualización Geoespacial</span>
-                        <div class="flex gap-2">
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="shareViaWhatsApp()" class="bg-white border border-emerald-200 p-2 px-3 text-[10px] font-bold text-emerald-700 hover:bg-emerald-50 flex items-center gap-2 transition-all">
+                                <i data-lucide="message-circle" class="w-3.5 h-3.5 text-emerald-600"></i> WHATSAPP
+                            </button>
                             <button onclick="exportInstructionsPDF()" class="bg-white border border-slate-200 p-2 px-3 text-[10px] font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition-all">
                                 <i data-lucide="file-text" class="w-3.5 h-3.5 text-red-600"></i> PDF
                             </button>
@@ -262,10 +266,31 @@
         let currentMode = 'mx'; 
         let mapsLoaded = false;
         let resultsData = [];
+        let finalGeoPoints = []; // Para compartir
         let map, directionsService, geocoder, distanceMatrixService, autocomplete;
         let polylines = [];
         let markers = [];
 
+        // --- GESTIÓN DE API KEY ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedKey = localStorage.getItem('google_maps_api_key');
+            if (savedKey) {
+                document.getElementById('api-key-input').value = savedKey;
+                loadGoogleMaps(savedKey);
+            }
+        });
+
+        document.getElementById('api-key-input').addEventListener('input', function(e) {
+            const key = e.target.value.trim();
+            if (key.length > 25) {
+                localStorage.setItem('google_maps_api_key', key);
+                document.getElementById('save-indicator').classList.remove('hidden');
+                setTimeout(() => document.getElementById('save-indicator').classList.add('hidden'), 2000);
+                loadGoogleMaps(key);
+            }
+        });
+
+        // --- LOGÍSTICA ---
         function switchTab(mode) {
             currentMode = mode;
             document.getElementById('tab-mx').className = mode === 'mx' ? 'tab-active pb-2 text-xs uppercase' : 'tab-inactive pb-2 text-xs uppercase';
@@ -275,11 +300,6 @@
             }
             lucide.createIcons();
         }
-
-        document.getElementById('api-key-input').addEventListener('input', function(e) {
-            const key = e.target.value.trim();
-            if (key.length > 20) loadGoogleMaps(key);
-        });
 
         document.getElementById('file-upload').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -378,7 +398,7 @@
                     const res = await new Promise((resolve) => {
                         geocoder.geocode({ address: currentMode === 'mx' ? p + ", México" : p, componentRestrictions: currentMode === 'mx' ? {country: 'MX'} : {} }, (r) => resolve(r));
                     });
-                    if (res) geoPoints.push({ name: p, location: res[0].geometry.location });
+                    if (res) geoPoints.push({ name: p, location: res[0].geometry.location, formatted: res[0].formatted_address });
                 }
 
                 let originalOrderPoints = [...geoPoints];
@@ -394,6 +414,8 @@
                 if (includeReturn) {
                     geoPoints.push({ ...geoPoints[0], name: geoPoints[0].name + " (Retorno)" });
                 }
+
+                finalGeoPoints = geoPoints; // Guardar para WhatsApp
 
                 document.getElementById('empty-state').classList.add('hidden');
                 document.getElementById('results-container').classList.remove('hidden');
@@ -524,6 +546,39 @@
             document.getElementById('results-body').appendChild(row);
         }
 
+        // --- COMPARTIR WHATSAPP ---
+        function shareViaWhatsApp() {
+            if (resultsData.length === 0) return;
+
+            const totalDist = document.getElementById('stat-distance').innerText;
+            const totalTime = document.getElementById('stat-time').innerText;
+            
+            let message = `🚚 *HOJA DE RUTA - RUTAS PERFILES*\n\n`;
+            message += `📍 *Resumen del Viaje:*\n`;
+            message += `- Distancia: ${totalDist} km\n`;
+            message += `- Tiempo: ${totalTime} min\n`;
+            message += `- Modo: ${currentMode === 'mx' ? 'Solo México' : 'Internacional'}\n\n`;
+
+            message += `🚩 *Itinerario:*\n`;
+            finalGeoPoints.forEach((p, idx) => {
+                message += `${idx + 1}. ${p.name}\n`;
+            });
+
+            // Generar Link de Navegación de Google Maps
+            const origin = encodeURIComponent(finalGeoPoints[0].name);
+            const dest = encodeURIComponent(finalGeoPoints[finalGeoPoints.length - 1].name);
+            const waypoints = finalGeoPoints.slice(1, -1).map(p => encodeURIComponent(p.name)).join('|');
+            
+            const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&waypoints=${waypoints}&travelmode=driving`;
+            
+            message += `\n🗺️ *Iniciar Navegación:*\n${mapsUrl}\n\n`;
+            message += `Buen viaje.`;
+
+            const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            window.open(waUrl, '_blank');
+        }
+
+        // --- EXPORTACIONES ---
         async function exportInstructionsPDF() {
             if (resultsData.length === 0) return;
             const { jsPDF } = window.jspdf;
