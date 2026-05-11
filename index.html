@@ -4,14 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rutas Perfiles - Gestión Logística</title>
-    <!-- Tailwind CSS -->
+
+    <!-- 1. PARCHE ANTICONGELAMIENTO PARA GOOGLE MAPS + TAILWIND -->
+    <script>
+        const OriginalMutationObserver = window.MutationObserver;
+        window.MutationObserver = class extends OriginalMutationObserver {
+            constructor(callback) {
+                super((mutations, observer) => {
+                    const validMutations = mutations.filter(mutation => {
+                        // Si el elemento que cambió es parte del Autocomplete de Google ('pac-container', 'pac-item'), lo ocultamos a Tailwind
+                        if (mutation.target && typeof mutation.target.className === 'string') {
+                            if (mutation.target.className.includes('pac-')) return false;
+                        }
+                        return true;
+                    });
+                    
+                    // Solo pasamos las mutaciones válidas al compilador de Tailwind
+                    if (validMutations.length > 0) {
+                        callback(validMutations, observer);
+                    }
+                });
+            }
+        };
+    </script>
+    
+    <!-- 2. Tailwind CSS (Debe ir estrictamente debajo del parche) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <!-- Iconos Lucide -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- jsPDF para PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!-- SheetJS para leer Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
