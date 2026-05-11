@@ -288,23 +288,34 @@
         let polylines = [];
         let markers = [];
 
-        // --- INICIALIZACIÓN Y PERSISTENCIA ---
+        // --- INICIALIZACIÓN Y PERSISTENCIA (CORREGIDO) ---
+        let apiTimeout;
+        let currentLoadedKey = null;
+
         document.addEventListener('DOMContentLoaded', () => {
             const savedKey = localStorage.getItem('logistics_api_key_v2');
             if (savedKey) {
                 document.getElementById('api-key-input').value = savedKey;
-                loadGoogleMaps(savedKey);
+                setTimeout(() => loadGoogleMaps(savedKey), 100);
             }
         });
 
         document.getElementById('api-key-input').addEventListener('input', function(e) {
             const key = e.target.value.trim();
+            
+            clearTimeout(apiTimeout);
+            
             if (key.length > 25) {
-                localStorage.setItem('logistics_api_key_v2', key);
-                const indicator = document.getElementById('save-indicator');
-                indicator.classList.remove('hidden');
-                setTimeout(() => indicator.classList.add('hidden'), 2500);
-                loadGoogleMaps(key);
+                apiTimeout = setTimeout(() => {
+                    if (currentLoadedKey === key) return;
+                    
+                    localStorage.setItem('logistics_api_key_v2', key);
+                    const indicator = document.getElementById('save-indicator');
+                    indicator.classList.remove('hidden');
+                    setTimeout(() => indicator.classList.add('hidden'), 2500);
+                    
+                    loadGoogleMaps(key);
+                }, 800);
             }
         });
 
@@ -318,10 +329,18 @@
             lucide.createIcons();
         }
 
-        // --- MOTOR DE MAPAS ---
+        // --- MOTOR DE MAPAS (CORREGIDO) ---
         function loadGoogleMaps(key) {
+            if (currentLoadedKey === key) return; 
+            currentLoadedKey = key;
+
             const oldScript = document.getElementById('google-maps-js');
             if (oldScript) oldScript.remove();
+
+            if (typeof google !== 'undefined' && autocomplete) {
+                google.maps.event.clearInstanceListeners(document.getElementById('autocomplete-input'));
+            }
+
             const script = document.createElement('script');
             script.id = 'google-maps-js';
             script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=geometry,places&language=es-mx&region=MX`;
