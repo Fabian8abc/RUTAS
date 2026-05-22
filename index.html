@@ -4,40 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rutas Perfiles - Gestión Logística</title>
-
-    <!-- 1. PARCHE ANTICONGELAMIENTO PARA GOOGLE MAPS + TAILWIND -->
-    <script>
-        const OriginalMutationObserver = window.MutationObserver;
-        window.MutationObserver = class extends OriginalMutationObserver {
-            constructor(callback) {
-                super((mutations, observer) => {
-                    const validMutations = mutations.filter(mutation => {
-                        // Si el elemento que cambió es parte del Autocomplete de Google ('pac-container', 'pac-item'), lo ocultamos a Tailwind
-                        if (mutation.target && typeof mutation.target.className === 'string') {
-                            if (mutation.target.className.includes('pac-')) return false;
-                        }
-                        return true;
-                    });
-                    
-                    // Solo pasamos las mutaciones válidas al compilador de Tailwind
-                    if (validMutations.length > 0) {
-                        callback(validMutations, observer);
-                    }
-                });
-            }
-        };
-    </script>
-    
-    <!-- 2. Tailwind CSS (Debe ir estrictamente debajo del parche) -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <!-- Iconos Lucide -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- jsPDF para PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!-- SheetJS para leer Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -127,13 +101,10 @@
             <div class="flex items-center gap-4 flex-1">
                 <div class="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-500">
                     <i data-lucide="key" class="w-3.5 h-3.5"></i>
-                    <!-- INPUT ACTUALIZADO CONTRA GESTORES DE CONTRASEÑA -->
                     <input 
                         type="password" 
                         id="api-key-input" 
                         placeholder="Google API Key..." 
-                        autocomplete="new-password" 
-                        data-lpignore="true"
                         class="text-xs outline-none w-64 bg-transparent font-mono"
                     >
                 </div>
@@ -187,19 +158,30 @@
                     </div>
 
                     <div class="space-y-4">
+                        
+                        <!-- ORIGEN ANCLADO (NUEVA FUNCIÓN) -->
+                        <div class="bg-indigo-50/50 border border-indigo-100 p-4 rounded-sm mb-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i data-lucide="pin" class="w-3.5 h-3.5 text-indigo-600"></i>
+                                <span class="text-[11px] font-bold text-indigo-900 uppercase">Origen Anclado (Fijo)</span>
+                            </div>
+                            <input 
+                                type="text" 
+                                id="pinned-origin-input" 
+                                placeholder="Ej. CEDIS Monterrey..." 
+                                class="w-full text-xs p-2.5 bg-white border border-slate-200 focus:border-indigo-500 outline-none rounded-sm transition-all shadow-sm"
+                            >
+                            <p class="text-[9.5px] text-slate-500 mt-2 font-medium">Se usará siempre como el punto de partida (se guarda automáticamente). Déjelo en blanco si el origen varía.</p>
+                        </div>
+
                         <!-- Buscador Inteligente -->
                         <div class="flex items-center gap-2">
                             <div class="relative flex-1 group">
                                 <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400"></i>
-                                <!-- INPUT ACTUALIZADO CONTRA GESTORES DE CONTRASEÑA -->
                                 <input 
                                     type="text" 
                                     id="autocomplete-input" 
-                                    placeholder="Añadir parada..." 
-                                    autocomplete="off"
-                                    role="presentation"
-                                    data-lpignore="true"
-                                    data-form-type="other"
+                                    placeholder="Añadir destino..." 
                                     class="w-full text-xs pl-9 pr-3 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 outline-none rounded-sm transition-all"
                                 >
                             </div>
@@ -210,8 +192,8 @@
 
                         <textarea 
                             id="locations-input"
-                            placeholder="Ingrese las direcciones, una por línea...&#10;Punto 1 es el ORIGEN."
-                            class="w-full h-48 p-4 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 outline-none text-xs font-mono resize-none custom-scrollbar rounded-sm"
+                            placeholder="Ingrese los destinos, uno por línea...&#10;(Si no hay un origen anclado arriba, la primera línea se tomará como origen)."
+                            class="w-full h-40 p-4 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 outline-none text-xs font-mono resize-none custom-scrollbar rounded-sm"
                         ></textarea>
 
                         <!-- Acciones Masivas -->
@@ -221,7 +203,7 @@
                             </button>
                             <input type="file" id="file-upload" class="hidden" accept=".xlsx, .xls, .csv">
                             <button onclick="clearAll()" class="flex items-center justify-center gap-2 p-3 bg-white border border-slate-200 text-slate-600 text-[10px] font-bold hover:bg-red-50 hover:text-red-600 rounded-sm transition-colors">
-                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> LIMPIAR
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> LIMPIAR CAJA
                             </button>
                         </div>
 
@@ -244,7 +226,7 @@
                             <div class="flex items-center justify-between">
                                 <div class="flex flex-col">
                                     <span class="text-[11px] font-bold text-slate-700">Incluir Retorno</span>
-                                    <span class="text-[9px] text-slate-400">Volver automáticamente al Punto 1</span>
+                                    <span class="text-[9px] text-slate-400">Volver automáticamente al Origen</span>
                                 </div>
                                 <input type="checkbox" id="return-toggle" class="w-4 h-4 accent-blue-600 cursor-pointer">
                             </div>
@@ -318,63 +300,57 @@
         let mapsLoaded = false;
         let resultsData = [];
         let finalGeoPoints = []; 
-        let map, directionsService, geocoder, distanceMatrixService, autocomplete;
+        let map, directionsService, geocoder, distanceMatrixService, autocomplete, autocompleteOrigin;
         let polylines = [];
         let markers = [];
 
-        // --- INICIALIZACIÓN Y PERSISTENCIA (CORREGIDO) ---
-        let apiTimeout;
-        let currentLoadedKey = null;
-
+        // --- INICIALIZACIÓN Y PERSISTENCIA ---
         document.addEventListener('DOMContentLoaded', () => {
+            // Cargar API Key
             const savedKey = localStorage.getItem('logistics_api_key_v2');
             if (savedKey) {
                 document.getElementById('api-key-input').value = savedKey;
-                setTimeout(() => loadGoogleMaps(savedKey), 100);
+                loadGoogleMaps(savedKey);
+            }
+
+            // Cargar Origen Anclado
+            const savedOrigin = localStorage.getItem('logistics_pinned_origin');
+            if (savedOrigin) {
+                document.getElementById('pinned-origin-input').value = savedOrigin;
             }
         });
 
         document.getElementById('api-key-input').addEventListener('input', function(e) {
             const key = e.target.value.trim();
-            
-            clearTimeout(apiTimeout);
-            
             if (key.length > 25) {
-                apiTimeout = setTimeout(() => {
-                    if (currentLoadedKey === key) return;
-                    
-                    localStorage.setItem('logistics_api_key_v2', key);
-                    const indicator = document.getElementById('save-indicator');
-                    indicator.classList.remove('hidden');
-                    setTimeout(() => indicator.classList.add('hidden'), 2500);
-                    
-                    loadGoogleMaps(key);
-                }, 800);
+                localStorage.setItem('logistics_api_key_v2', key);
+                const indicator = document.getElementById('save-indicator');
+                indicator.classList.remove('hidden');
+                setTimeout(() => indicator.classList.add('hidden'), 2500);
+                loadGoogleMaps(key);
             }
+        });
+
+        document.getElementById('pinned-origin-input').addEventListener('input', function(e) {
+            localStorage.setItem('logistics_pinned_origin', e.target.value);
         });
 
         function switchTab(mode) {
             currentMode = mode;
             document.getElementById('tab-mx').className = mode === 'mx' ? 'pb-3 text-[11px] uppercase tracking-tighter transition-all tab-active' : 'pb-3 text-[11px] uppercase tracking-tighter transition-all text-slate-400 font-bold';
             document.getElementById('tab-global').className = mode === 'global' ? 'pb-3 text-[11px] uppercase tracking-tighter transition-all tab-active' : 'pb-3 text-[11px] uppercase tracking-tighter transition-all text-slate-400 font-bold';
-            if (autocomplete) {
-                autocomplete.setComponentRestrictions(mode === 'mx' ? { country: "mx" } : {});
-            }
+            
+            const restrictions = mode === 'mx' ? { country: "mx" } : {};
+            if (autocomplete) autocomplete.setComponentRestrictions(restrictions);
+            if (autocompleteOrigin) autocompleteOrigin.setComponentRestrictions(restrictions);
+            
             lucide.createIcons();
         }
 
-        // --- MOTOR DE MAPAS (CORREGIDO) ---
+        // --- MOTOR DE MAPAS ---
         function loadGoogleMaps(key) {
-            if (currentLoadedKey === key) return; 
-            currentLoadedKey = key;
-
             const oldScript = document.getElementById('google-maps-js');
             if (oldScript) oldScript.remove();
-
-            if (typeof google !== 'undefined' && autocomplete) {
-                google.maps.event.clearInstanceListeners(document.getElementById('autocomplete-input'));
-            }
-
             const script = document.createElement('script');
             script.id = 'google-maps-js';
             script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=geometry,places&language=es-mx&region=MX`;
@@ -405,9 +381,27 @@
         }
 
         function initAutocomplete() {
+            const restrictions = currentMode === 'mx' ? { country: "mx" } : {};
+            
+            // Autocomplete para destinos
             autocomplete = new google.maps.places.Autocomplete(document.getElementById('autocomplete-input'), {
-                componentRestrictions: currentMode === 'mx' ? { country: "mx" } : {},
+                componentRestrictions: restrictions,
                 fields: ["formatted_address", "geometry", "name"]
+            });
+            autocomplete.addListener('place_changed', addFromAutocomplete);
+
+            // Autocomplete para Origen Anclado
+            autocompleteOrigin = new google.maps.places.Autocomplete(document.getElementById('pinned-origin-input'), {
+                componentRestrictions: restrictions,
+                fields: ["formatted_address"]
+            });
+            autocompleteOrigin.addListener('place_changed', () => {
+                const place = autocompleteOrigin.getPlace();
+                if (place && place.formatted_address) {
+                    const val = place.formatted_address;
+                    document.getElementById('pinned-origin-input').value = val;
+                    localStorage.setItem('logistics_pinned_origin', val);
+                }
             });
         }
 
@@ -424,9 +418,20 @@
         // --- CÁLCULOS LOGÍSTICOS ---
         async function startProcess() {
             if (!mapsLoaded) return alert("Ingrese su API Key válida.");
+            
+            const pinnedOrigin = document.getElementById('pinned-origin-input').value.trim();
             const input = document.getElementById('locations-input').value.trim();
+            
             let rawPoints = input.split('\n').map(p => p.trim()).filter(p => p.length > 0);
-            if (rawPoints.length < 2) return alert("Se requieren mínimo 2 puntos (Origen y Destino).");
+            
+            // Si hay un origen anclado, lo insertamos al principio de la lista
+            if (pinnedOrigin) {
+                rawPoints.unshift(pinnedOrigin);
+            }
+
+            if (rawPoints.length < 2) {
+                return alert("Se requieren mínimo 2 puntos (Origen y Destino). Añade destinos en la caja grande.");
+            }
 
             const btn = document.getElementById('btn-calculate');
             const optimize = document.getElementById('optimize-toggle').checked;
@@ -460,7 +465,7 @@
                 }
                 const originalDist = await calculateTotalDistance(originalOrderPoints, currentMode === 'mx', heavyVehicle);
 
-                // Optimización de Orden
+                // Optimización de Orden (El punto 0 siempre se respeta como Origen, sea anclado o no)
                 if (optimize && geoPoints.length > 2) {
                     geoPoints = await optimizeRoute(geoPoints, currentMode === 'mx', heavyVehicle);
                 }
@@ -601,7 +606,7 @@
                 <td class="px-6 py-5"><div class="flex flex-col"><span class="text-[9px] text-slate-400 font-bold uppercase truncate max-w-[300px]">${item.desde}</span>
                 <span class="text-xs font-bold text-slate-700">${item.hasta}</span></div></td>
                 <td class="px-6 py-5 text-center font-bold text-slate-900">${item.distancia}</td>
-                <td class="px-6 py-5 text-center">${item.violation ? `<span class="bg-red-600 text-white px-2 py-1 text-[9px] font-black uppercase rounded-sm">Bloqueado</span>` : 
+                <td class="px-6 py-5 text-center">${item.violation ? `<span class="bg-red-600 text-white px-2 py-1 text-[9px] font-bold uppercase rounded-sm">Bloqueado</span>` : 
                 `<span class="text-slate-600 font-bold">${item.duracion}</span>`}</td>`;
             document.getElementById('results-body').appendChild(row);
         }
@@ -656,6 +661,7 @@
         }
 
         function clearAll() {
+            // Limpia los destinos, pero NO borra el origen anclado.
             document.getElementById('locations-input').value = "";
             document.getElementById('empty-state').classList.remove('hidden');
             document.getElementById('map-container').classList.add('hidden');
