@@ -60,11 +60,12 @@
         .dark .border-slate-200, .dark .border-slate-100 { border-color: #334155 !important; }
         
         /* Inputs & Textareas Dark Mode */
-        .dark input, .dark textarea {
+        .dark input, .dark textarea, .dark select {
             background-color: #0f172a !important;
             color: #f8fafc !important;
+            border-color: #334155 !important;
         }
-        .dark input:focus, .dark textarea:focus { border-color: var(--brand-accent) !important; background-color: #1e293b !important; }
+        .dark input:focus, .dark textarea:focus, .dark select:focus { border-color: var(--brand-accent) !important; background-color: #1e293b !important; }
 
         /* KPI Tiles Dark Mode */
         .kpi-tile {
@@ -116,7 +117,6 @@
             z-index: 9999;
             font-family: 'Inter', sans-serif;
         }
-        /* Intento de oscurecer pac-container (a menudo sobreescrito por Google) */
         .dark .pac-container { background-color: #1e293b; border-color: #334155; color: #f8fafc; }
         .dark .pac-item { color: #f8fafc; border-top-color: #334155; }
         .dark .pac-item-query { color: #f8fafc; }
@@ -227,7 +227,17 @@
                                 placeholder="Ej. CEDIS Monterrey..." 
                                 class="w-full text-xs p-2.5 bg-white border border-slate-200 focus:border-indigo-500 outline-none rounded-sm transition-all shadow-sm"
                             >
-                            <p class="text-[9.5px] text-slate-500 mt-2 font-medium">Se usará siempre como el punto de partida (se guarda automáticamente). Déjelo en blanco si el origen varía.</p>
+                            <p class="text-[9.5px] text-slate-500 mt-2 font-medium">Se usará siempre como el punto de partida. Déjelo en blanco si el origen varía.</p>
+                        </div>
+
+                        <!-- Mis Rutas (Predeterminadas) -->
+                        <div class="flex gap-2">
+                            <select id="saved-routes-select" onchange="loadSelectedRoute()" class="flex-1 text-xs p-2 bg-slate-50 border border-slate-200 outline-none rounded-sm cursor-pointer transition-colors text-slate-600">
+                                <option value="">Mis Rutas Guardadas...</option>
+                            </select>
+                            <button onclick="saveCurrentRoute()" class="btn-main px-3 text-white rounded-sm shadow-md text-[10px] font-bold" title="Guardar lista actual">
+                                <i data-lucide="save" class="w-4 h-4"></i>
+                            </button>
                         </div>
 
                         <!-- Buscador Inteligente -->
@@ -248,7 +258,8 @@
 
                         <textarea 
                             id="locations-input"
-                            placeholder="Ingrese los destinos, uno por línea...&#10;(Si no hay un origen anclado arriba, la primera línea se tomará como origen)."
+                            placeholder="Ingrese los destinos, uno por línea...
+(Si no hay un origen anclado arriba, la primera línea se tomará como origen)."
                             class="w-full h-40 p-4 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 outline-none text-xs font-mono resize-none custom-scrollbar rounded-sm transition-colors duration-300"
                         ></textarea>
 
@@ -264,14 +275,33 @@
                         </div>
 
                         <!-- Parámetros de Carga -->
-                        <div class="bg-slate-50 p-5 border border-slate-200 rounded-sm space-y-5 transition-colors duration-300">
+                        <div class="bg-slate-50 p-5 border border-slate-200 rounded-sm space-y-4 transition-colors duration-300">
+                            <!-- Nuevo: Capa de Tráfico -->
+                            <div class="flex items-center justify-between pb-3 border-b border-slate-200/50 dark:border-slate-700/50">
+                                <div class="flex flex-col">
+                                    <span class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">Ver Tráfico en Vivo</span>
+                                    <span class="text-[9px] text-slate-400">Muestra saturación en el mapa</span>
+                                </div>
+                                <input type="checkbox" id="traffic-toggle" class="w-4 h-4 accent-emerald-600 cursor-pointer">
+                            </div>
+
                             <div class="flex items-center justify-between">
                                 <div class="flex flex-col">
                                     <span class="text-[11px] font-bold text-slate-700">Vehículo Pesado</span>
-                                    <span class="text-[9px] text-slate-400">Evitar rutas no aptas para trailers</span>
+                                    <span class="text-[9px] text-slate-400">Evitar autopistas (Highways)</span>
                                 </div>
                                 <input type="checkbox" id="heavy-toggle" class="w-4 h-4 accent-blue-600 cursor-pointer">
                             </div>
+
+                            <!-- Nuevo: Evitar Cuotas / Segundos Pisos -->
+                            <div class="flex items-center justify-between">
+                                <div class="flex flex-col">
+                                    <span class="text-[11px] font-bold text-slate-700">Evitar Cuotas / 2dos Pisos</span>
+                                    <span class="text-[9px] text-slate-400">Restringe vías de peaje en CDMX</span>
+                                </div>
+                                <input type="checkbox" id="tolls-toggle" class="w-4 h-4 accent-blue-600 cursor-pointer">
+                            </div>
+
                             <div class="flex items-center justify-between">
                                 <div class="flex flex-col">
                                     <span class="text-[11px] font-bold text-slate-700">Optimizar Paradas</span>
@@ -359,6 +389,7 @@
         let resultsData = [];
         let finalGeoPoints = []; 
         let map, directionsService, geocoder, distanceMatrixService, autocomplete, autocompleteOrigin;
+        let trafficLayer; // Nueva Capa de Tráfico
         let polylines = [];
         let markers = [];
         let isDarkMode = false;
@@ -403,6 +434,9 @@
             if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 toggleDarkMode(true);
             }
+
+            // Cargar Mis Rutas Guardadas
+            loadSavedRoutesDropdown();
         });
 
         // --- MODO OSCURO (TOGGLE) ---
@@ -427,7 +461,6 @@
             }
             lucide.createIcons();
 
-            // Actualizar estilo del mapa si ya está cargado
             if (map) {
                 map.setOptions({ styles: isDarkMode ? mapStylesDark : mapStylesLight });
             }
@@ -448,6 +481,42 @@
             localStorage.setItem('logistics_pinned_origin', e.target.value);
         });
 
+        // --- RUTAS PREDETERMINADAS (NUEVO) ---
+        function saveCurrentRoute() {
+            const input = document.getElementById('locations-input').value.trim();
+            if(!input) return alert("No hay direcciones en la caja para guardar.");
+            
+            const routeName = prompt("Asigna un nombre a esta ruta (ej. 'Reparto Polanco'):");
+            if(routeName && routeName.trim() !== "") {
+                let savedRoutes = JSON.parse(localStorage.getItem('logistics_saved_routes') || '{}');
+                savedRoutes[routeName.trim()] = input;
+                localStorage.setItem('logistics_saved_routes', JSON.stringify(savedRoutes));
+                loadSavedRoutesDropdown();
+                alert(`Ruta "${routeName}" guardada correctamente.`);
+            }
+        }
+
+        function loadSavedRoutesDropdown() {
+            const savedRoutes = JSON.parse(localStorage.getItem('logistics_saved_routes') || '{}');
+            const select = document.getElementById('saved-routes-select');
+            select.innerHTML = '<option value="">Mis Rutas Guardadas...</option>';
+            
+            for(let name in savedRoutes) {
+                select.innerHTML += `<option value="${name}">${name}</option>`;
+            }
+        }
+
+        function loadSelectedRoute() {
+            const select = document.getElementById('saved-routes-select');
+            const name = select.value;
+            if(!name) return;
+            
+            const savedRoutes = JSON.parse(localStorage.getItem('logistics_saved_routes') || '{}');
+            if(savedRoutes[name]) {
+                document.getElementById('locations-input').value = savedRoutes[name];
+            }
+        }
+
         function switchTab(mode) {
             currentMode = mode;
             document.getElementById('tab-mx').className = mode === 'mx' ? 'pb-3 text-[11px] uppercase tracking-tighter transition-all tab-active' : 'pb-3 text-[11px] uppercase tracking-tighter transition-all text-slate-400 font-bold';
@@ -466,7 +535,7 @@
             if (oldScript) oldScript.remove();
             const script = document.createElement('script');
             script.id = 'google-maps-js';
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=geometry,places&language=es-mx&region=MX`;
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=geometry,places&language=es-mx®ion=MX`;
             script.async = true;
             script.onload = () => {
                 mapsLoaded = true;
@@ -485,9 +554,22 @@
                 disableDefaultUI: false,
                 styles: isDarkMode ? mapStylesDark : mapStylesLight
             });
+            
             directionsService = new google.maps.DirectionsService();
             geocoder = new google.maps.Geocoder();
             distanceMatrixService = new google.maps.DistanceMatrixService();
+            
+            // Inicializar capa de tráfico
+            trafficLayer = new google.maps.TrafficLayer();
+            
+            // Evento para prender/apagar capa de tráfico
+            document.getElementById('traffic-toggle').addEventListener('change', function(e) {
+                if(e.target.checked) {
+                    trafficLayer.setMap(map);
+                } else {
+                    trafficLayer.setMap(null);
+                }
+            });
         }
 
         function initAutocomplete() {
@@ -540,10 +622,28 @@
                 return alert("Se requieren mínimo 2 puntos (Origen y Destino). Añade destinos en la caja grande.");
             }
 
+            // --- FILTRO ANTI-AMBIGÜEDAD PARA CDMX ---
+            const cdmxKeywords = ["cdmx", "ciudad de mexico", "ciudad de méxico", "distrito federal"];
+            for (let p of rawPoints) {
+                const lowerP = p.toLowerCase();
+                const isCDMX = cdmxKeywords.some(kw => lowerP.includes(kw));
+                
+                if (isCDMX) {
+                    const hasCP = /\b\d{5}\b/.test(p); // Busca 5 números seguidos
+                    const hasColonia = /col\.|colonia/i.test(p);
+                    
+                    if (!hasCP && !hasColonia) {
+                        alert(`⚠️ ALERTA DE AMBIGÜEDAD\n\nLa dirección "${p}" parece ser en CDMX.\nPara evitar enviar al transporte a una alcaldía equivocada, por favor agrega la Colonia o el Código Postal (5 dígitos) a esta dirección.`);
+                        return; // Detiene el cálculo
+                    }
+                }
+            }
+
             const btn = document.getElementById('btn-calculate');
             const optimize = document.getElementById('optimize-toggle').checked;
             const includeReturn = document.getElementById('return-toggle').checked;
             const heavyVehicle = document.getElementById('heavy-toggle').checked;
+            const applyAvoidTolls = document.getElementById('tolls-toggle').checked; // Nuevo Toggle de Cuotas
             
             btn.disabled = true;
             btn.innerHTML = `PROCESANDO LOGÍSTICA...`;
@@ -569,10 +669,10 @@
                 if (includeReturn) {
                     originalOrderPoints.push({ ...originalOrderPoints[0], name: originalOrderPoints[0].name + " (Retorno)" });
                 }
-                const originalDist = await calculateTotalDistance(originalOrderPoints, currentMode === 'mx', heavyVehicle);
+                const originalDist = await calculateTotalDistance(originalOrderPoints, currentMode === 'mx', heavyVehicle, applyAvoidTolls);
 
                 if (optimize && geoPoints.length > 2) {
-                    geoPoints = await optimizeRoute(geoPoints, currentMode === 'mx', heavyVehicle);
+                    geoPoints = await optimizeRoute(geoPoints, currentMode === 'mx', heavyVehicle, applyAvoidTolls);
                 }
 
                 if (includeReturn) {
@@ -596,7 +696,7 @@
                             destination: geoPoints[i+1].location,
                             travelMode: 'DRIVING',
                             avoidHighways: currentMode === 'mx' || heavyVehicle,
-                            avoidTolls: currentMode === 'mx' || heavyVehicle,
+                            avoidTolls: applyAvoidTolls, // Responde al nuevo toggle
                             region: 'MX'
                         }, (res) => resolve(res));
                     });
@@ -653,14 +753,14 @@
             lucide.createIcons();
         }
 
-        async function calculateTotalDistance(points, isMx, heavy) {
+        async function calculateTotalDistance(points, isMx, heavy, applyAvoidTolls) {
             let d = 0;
             for(let i=0; i<points.length-1; i++) {
                 try {
                     const r = await new Promise((res, rej) => {
                         distanceMatrixService.getDistanceMatrix({ 
                             origins:[points[i].location], destinations:[points[i+1].location], 
-                            travelMode:'DRIVING', avoidHighways:isMx||heavy, avoidTolls:isMx||heavy 
+                            travelMode:'DRIVING', avoidHighways:isMx||heavy, avoidTolls:applyAvoidTolls 
                         }, (resM, status) => (status === 'OK' ? res(resM) : rej(status)));
                     });
                     d += r.rows[0].elements[0].distance?.value || 0;
@@ -669,11 +769,11 @@
             return d;
         }
 
-        async function optimizeRoute(points, isMx, heavy) {
+        async function optimizeRoute(points, isMx, heavy, applyAvoidTolls) {
             const matrix = await new Promise(res => {
                 distanceMatrixService.getDistanceMatrix({ 
                     origins: points.map(p=>p.location), destinations: points.map(p=>p.location), 
-                    travelMode:'DRIVING', avoidHighways:isMx||heavy, avoidTolls:isMx||heavy
+                    travelMode:'DRIVING', avoidHighways:isMx||heavy, avoidTolls:applyAvoidTolls
                 }, res);
             });
             const opt = [points[0]]; const unvisited = Array.from({length: points.length-1}, (_,i)=>i+1);
@@ -704,7 +804,6 @@
             const row = document.createElement('tr');
             row.className = item.violation ? "bg-red-50 dark:bg-red-900/20 transition-colors" : "hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-slate-100 dark:border-slate-700";
             
-            // Adjust colors for dark mode context
             const textColor = item.violation ? "text-red-600 dark:text-red-400" : "text-slate-600 dark:text-slate-300";
             
             row.innerHTML = `
